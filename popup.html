@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Penang CoE CForce Extension Popup</title>
+  <meta charset="UTF-8">
+
+  <style>
+    * {
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+
+    h1 {
+      font-size: 14pt;
+    }
+
+    h2 {
+      font-size: 12pt;
+    }
+
+    p {
+      font-size: 12pt;
+    }
+    span {
+      background-color: rgba(23, 22, 22, 0.76);
+      padding: 0 6px;
+    }
+    html {
+      width: 300px; /* max: 1000px */
+      height: 300px; /* max: 750px */
+    }
+
+    body {
+      background: url(img/popUp_bg.jpg) no-repeat center center fixed; 
+      -webkit-background-size: cover;
+      -moz-background-size: cover;
+      -o-background-size: cover;
+      background-size: cover;
+      background-color: grey;
+      background-blend-mode: multiply;
+      padding: 15%;
+    }
+
+    .notInSFDC {
+      background-color: rgb(191, 39, 75); 
+      border-radius: 6px; 
+      padding: 8px 8px; 
+      color: white; 
+      font-weight: 500;
+      font-size: 1rem;
+    }
+
+    #selectionDropdown {
+      color:black;
+    }
+
+    #selectionDropdown > option {
+      background-color: white;
+      color: black;
+    }
+
+    #saveButton {
+      background-color: white;
+      color: black;
+    }
+
+    .descriptionTitle {
+      border-top: solid white;
+      padding-top: 1rem;
+    }
+
+  </style>
+</head>
+<body>
+  <h1>Penang CoE CForce Extension</h1>
+
+  <div class="container">
+    <div class="selection">
+      <div>
+        <h2 class="descriptionTitle">👔 Team or BU Setting</h2>
+        <p>For "from" email to be highlighted properly</p>
+        <select id="selectionDropdown">
+          <option value="EndNote">EndNote</option>
+          <option value="WebOfScience">Web of Science</option>
+          <option value="ScholarOne">ScholarOne</option>
+          <option value="LifeScience">Life Science</option>
+          <option value="LifeScienceHDS">Life Science (HDS)</option>
+          <option value="LifeSciencePS">Life Science (Product Specialist)</option>
+          <option value="AccountSupport">Account Support</option>
+        </select>
+        
+        <button id="saveButton">Save</button>
+      </div>
+
+      <div>
+        <h2 class="descriptionTitle">🎨 Status Colour Setting</h2>
+        <p>Feature coming soon</p>
+      </div>
+
+      <div>
+        <h2 class="descriptionTitle">⚠ Notice for ProQuest and ScholarOne Teams</h2>
+        <p>Due to different status and SFDC layout, more development and testing are pending before the features of this extension can be adapated. In the works 😊</p>
+      </div>
+
+      <div>
+        <h2 class="descriptionTitle">How to ensure that the plugin works?</h2>
+        <p><span>1️⃣ Show the "Status" & "Date/Time Opened" Column in your Case List View</span></p>
+        <p><span>2️⃣ Select your team above, and click "Save"</span></p>
+      </div>
+
+    </div>
+  </div>
+
+  <h2 class="descriptionTitle">What does this extension do?</h2>
+  <p><span>1️⃣ Highlight new Open cases in SFDC, where each 30 minute lapsed will highlight the row from green to red (<a href="https://clarivate-my.sharepoint.com/:i:/p/muhammadamirfaaiz_shamsolnizam/Edhep5VIW5RKqowAFcgjjgIBAJDslr3jibDGLqLDv9VKwQ?e=3Hq03P" target="_blank">Preview</a>)</span></p>
+  <p><span>2️⃣ When sending emails to customer in SFDC, the "From" field will be coloured if it's not using the right email (<a href="https://clarivate-my.sharepoint.com/:i:/p/muhammadamirfaaiz_shamsolnizam/Ed1MyExuvABFuJSVoa75t2wB8Grkiv3_fc2mTDifD1zjFA?e=GR6hZ3" target="_blank">Preview</a>)</span></p>
+  <p><span>3️⃣ The case statuses are highlighted according to the attention it requires (<a href="https://clarivate-my.sharepoint.com/:i:/p/muhammadamirfaaiz_shamsolnizam/EUPb9zxAUARJjfOeztlVJ2UBA1g7sRBdEEcl-Hk-1QCL7w?e=6vdDIt" target="_blank">Preview</a>)</span></p>
+
+  <p><span>💡 Any feedback or suggestion can let me know via Teams (<a href="https://teams.microsoft.com/l/chat/0/0?users=muhammadamirfaaiz.shamsolnizam@clarivate.com" target="_blank">Click to message</a>)</span></p>
+
+  <p><span>📔 You can also contribute to the extension's future improvements by adding ideas to <a href="https://clarivate-my.sharepoint.com/:wb:/p/muhammadamirfaaiz_shamsolnizam/EUUQcgicX8tEgeoCkKgr4pIBRm18G1kT5c8BaTRaj1PPgA?e=gjtaFo" target="_blank">our moodboard</a></span></p>
+</body>
+
+<script src="content_script.js"></script>
+<script type="module" src="popup.js"></script>
+
+</html>
+
