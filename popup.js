@@ -1,3 +1,7 @@
+/**
+ * @description Gets the URL of the currently active tab in the current window.
+ * @returns {Promise<object>} A promise that resolves with the active tab object.
+ */
 async function getActiveTabURL() {
     const tabs = await chrome.tabs.query({
         currentWindow: true,
@@ -7,6 +11,12 @@ async function getActiveTabURL() {
     return tabs[0];
 }
 
+/**
+ * @description This listener initializes the popup's UI when the DOM is fully loaded.
+ * It checks if the active tab is a Salesforce page. If so, it loads the user's saved
+ * selection and sets up the save button. Otherwise, it displays a message asking the
+ * user to open the extension on a Salesforce page.
+ */
 document.addEventListener("DOMContentLoaded", async () => {
     const activeTab = await getActiveTabURL();
 
@@ -27,14 +37,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 });
 
-// Save the current selection to chrome.storage
+/**
+ * @description Handles the click event for the "Save" button. It gets the selected value from the dropdown,
+ * saves it, and shows an alert to the user.
+ */
 function save() {
     const selectedValue = document.getElementById('selectionDropdown').value;
     saveSelection(selectedValue);
     alert(`Please refresh CForce (Salesforce Website). Thanks 😊`);
   }
   
-  // Function to save the selection to chrome.storage
+/**
+ * @description Saves the user's selected team to Chrome's sync storage.
+ * @param {string} selectedValue - The value to save.
+ */
   function saveSelection(selectedValue) {
     chrome.storage.sync.set({ 'savedSelection': selectedValue }, function() {
       console.log('Selection saved: ' + selectedValue);

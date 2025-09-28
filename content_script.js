@@ -1,5 +1,15 @@
 // --- METADATA ---
+
+/**
+ * @constant {string} emailEndNote
+ * @description The primary support email for EndNote.
+ */
 const emailEndNote = "endnote.support@clarivate.com"
+
+/**
+ * @constant {string[]} emailKeywordsEndNote
+ * @description Keywords used to identify emails that should not be sent from the EndNote queue.
+ */
 const emailKeywordsEndNote = [
   'ts.',
   'ts-',
@@ -45,7 +55,15 @@ const emailKeywordsEndNote = [
   'bisqa',
 ];
 
+/**
+ * @constant {string} emailWoS
+ * @description The primary support email for Web of Science.
+ */
 const emailWoS = "wosg.support@clarivate.com"
+/**
+ * @constant {string[]} emailKeywordsWoS
+ * @description Keywords used to identify emails that should not be sent from the Web of Science queue.
+ */
 const emailKeywordsWoS = [
   'ts.',
   'ts-',
@@ -90,7 +108,15 @@ const emailKeywordsWoS = [
   'bisqa',
 ];
 
+/**
+ * @constant {string} emailScholarOne
+ * @description The primary support email for ScholarOne.
+ */
 const emailScholarOne = "s1help@clarivate.com";
+/**
+ * @constant {string[]} emailKeywordsScholarOne
+ * @description Keywords used to identify emails that should not be sent from the ScholarOne queue.
+ */
 const emailKeywordsScholarOne = [
   'ts.',
   'ts-',
@@ -136,7 +162,15 @@ const emailKeywordsScholarOne = [
   'bisqa',
 ];
 
+/**
+ * @constant {string} emailAccountSupport
+ * @description The primary support email for Account Support.
+ */
 const emailAccountSupport = "account.support@clarivate.com"
+/**
+ * @constant {string[]} emailKeywordsAccountSupport
+ * @description Keywords used to identify emails that should not be sent from the Account Support queue.
+ */
 const emailKeywordsAccountSupport = [
   'ts.',
   'ts-',
@@ -182,7 +216,15 @@ const emailKeywordsAccountSupport = [
   'bisqa',
 ];
 
+/**
+ * @constant {string} emailLifeScience
+ * @description The primary support email for Life Science.
+ */
 const emailLifeScience = "lifesciences.support@clarivate.com"
+/**
+ * @constant {string[]} emailKeywordsLifeScience
+ * @description Keywords used to identify emails that should not be sent from the Life Science queue.
+ */
 const emailKeywordsLifeScience = [
   'ts.',
   'ts-',
@@ -229,7 +271,15 @@ const emailKeywordsLifeScience = [
   'bisqa',
 ];
 
+/**
+ * @constant {string} emailLifeScienceHDS
+ * @description The primary support email for Life Science HDS.
+ */
 const emailLifeScienceHDS = "DRG.customerservice@clarivate.com"
+/**
+ * @constant {string[]} emailKeywordsLifeScienceHDS
+ * @description Keywords used to identify emails that should not be sent from the Life Science HDS queue.
+ */
 const emailKeywordsLifeScienceHDS = [
   'ts.',
   'ts-',
@@ -276,7 +326,15 @@ const emailKeywordsLifeScienceHDS = [
   'bisqa',
 ];
 
+/**
+ * @constant {string[]} emailLifeSciencePS
+ * @description The primary support emails for Life Science PS.
+ */
 const emailLifeSciencePS = ["lsclientservicesdl@clarivate.com", "lifesciences.support@clarivate.com"]
+/**
+ * @constant {string[]} emailKeywordsLifeSciencePS
+ * @description Keywords used to identify emails that should not be sent from the Life Science PS queue.
+ */
 const emailKeywordsLifeSciencePS = [
   'ts.',
   'ts-',
@@ -325,6 +383,10 @@ const emailKeywordsLifeSciencePS = [
 
 let desiredTextSelection, emailKeywordsSelection;
 
+/**
+ * @description Retrieves the user's saved team selection from Chrome's storage and sets the
+ * `desiredTextSelection` and `emailKeywordsSelection` variables accordingly.
+ */
 chrome.runtime.sendMessage({ message: 'getSavedSelection' }, function (response) {
   if (response.status) {
     const savedSelection = response.data;
@@ -371,6 +433,10 @@ chrome.runtime.sendMessage({ message: 'getSavedSelection' }, function (response)
 
 // > For SFDC Classic (ScholarOne)
 
+/**
+ * @description Checks if the current page is the email sending page in Salesforce Classic.
+ * @returns {boolean} True if the page is the email page, false otherwise.
+ */
 function emailPageCheck() {
   let h1Elements = document.getElementsByTagName('h1');
 
@@ -388,6 +454,10 @@ function emailPageCheck() {
   return result;
 }
 
+/**
+ * @description Changes the background color of the 'From' email dropdown in Salesforce Classic (ScholarOne)
+ * based on the selected email template. It highlights incorrect selections.
+ */
 function changeS1AnchorBackgroundColor() {
 
   var selectEmailElement = document.querySelector('select#p26');
@@ -405,6 +475,11 @@ function changeS1AnchorBackgroundColor() {
 
 }
 
+/**
+ * @description Main handler for email-related functionality on ScholarOne Salesforce Classic pages.
+ * It checks if the current page is the email page and, if so, applies the initial
+ * background color change and sets up an event listener for future changes.
+ */
 function scholarOneHandleAnchor() {
   if (emailPageCheck()) {
 
@@ -421,6 +496,12 @@ function scholarOneHandleAnchor() {
 
 // > For SFDC Lightning
 
+/**
+ * @description Checks if an anchor element's text content matches the desired support email.
+ * This function handles cases where the desired email is a single string or an array of strings.
+ * @param {HTMLAnchorElement} anchor - The anchor element to check.
+ * @returns {boolean} True if the anchor text contains the desired email, false otherwise.
+ */
 function isEndNoteSupportAnchor(anchor) {
   let desiredText = desiredTextSelection || emailEndNote;
 
@@ -439,7 +520,12 @@ function isEndNoteSupportAnchor(anchor) {
   }
 }
 
-//Function to check if there is an email keyword in the text
+/**
+ * @description Checks if an anchor's text content contains any of the keywords for non-support emails
+ * and the "@clarivate.com" domain. This is used to identify internal or mis-queued emails.
+ * @param {HTMLAnchorElement} anchor - The anchor element to check.
+ * @returns {boolean} True if a keyword and the domain are found, false otherwise.
+ */
 function isClarivateEmailList(anchor) {
   const emailKeywords = emailKeywordsSelection || emailKeywordsEndNote;
 
@@ -455,17 +541,28 @@ function isClarivateEmailList(anchor) {
 }
 
 
-// Function to change background color to orange
+/**
+ * @description Sets the background color of an element.
+ * @param {HTMLElement} anchor - The element to highlight.
+ * @param {string} color - The color to set as the background.
+ */
 function highlightAnchorWithSpecificContent(anchor, color) {
   anchor.style.backgroundColor = color;
 }
 
-// Function to revert the background color to default
+/**
+ * @description Removes the background color from an element.
+ * @param {HTMLElement} anchor - The element to unhighlight.
+ */
 function unhighlightAnchor(anchor) {
   anchor.style.backgroundColor = "";
 }
 
-// Main function to check and handle anchor elements
+/**
+ * @description Main function to handle the "From" email field highlighting in Salesforce Lightning.
+ * It identifies the correct "From" field, checks the selected email, and applies highlighting
+ * for incorrect or non-standard selections.
+ */
 function handleAnchors() {
   const fromFieldDiv = document.getElementsByClassName("standardField uiMenu");
   for (const fromDiv of fromFieldDiv) {
@@ -484,7 +581,12 @@ function handleAnchors() {
 
 // --- OPEN CASES HIGHLIGHTER ---
 
-// --- Given two dates, return the earlier date ---
+/**
+ * @description Compares two date strings and returns the earlier date.
+ * @param {string} date1Str - The first date string.
+ * @param {string} date2Str - The second date string.
+ * @returns {Date} The earlier of the two dates.
+ */
 function getEarlierDate(date1Str, date2Str) {
   const date1 = new Date(date1Str);
   const date2 = new Date(date2Str);
@@ -498,7 +600,11 @@ function getEarlierDate(date1Str, date2Str) {
   }
 }
 
-// --- Calculate the time difference between the given date and now in minutes ---
+/**
+ * @description Calculates the difference in minutes between a given date and the current time.
+ * @param {Date|string} date - The date to compare with now.
+ * @returns {number} The time difference in minutes.
+ */
 function calculateTimeDifferenceInMinutes(date) {
   const openDate = new Date(date);
   const currentDate = new Date();
@@ -509,35 +615,55 @@ function calculateTimeDifferenceInMinutes(date) {
   return timeDifferenceInMinutes;
 }
 
-// --- Check if the given date is in the correct format MM/DD/YYYY HH:MM AM/PM ---
+/**
+ * @description Checks if a string is a valid date in MM/DD/YYYY HH:MM AM/PM format.
+ * @param {string} textContent - The string to validate.
+ * @returns {boolean} True if the string matches the date format, false otherwise.
+ */
 function isValidDateFormat(textContent) {
   const datePattern = /^(1[0-2]|0?[1-9])\/(3[01]|[12][0-9]|0?[1-9])\/\d{4} (1[0-2]|0?[1-9]):([0-5][0-9]) (AM|PM)$/;
 
   return datePattern.test(textContent);
 }
 
-// --- Check if the given date is in the correct format DD/MM/YYYY HH:MM AM/PM ---
+/**
+ * @description Checks if a string is a valid date in DD/MM/YYYY HH:MM AM/PM format.
+ * @param {string} textContent - The string to validate.
+ * @returns {boolean} True if the string matches the date format, false otherwise.
+ */
 function isValidDateFormat2(textContent) {
   const datePattern = /^(3[01]|[12][0-9]|0?[1-9])\/(1[0-2]|0?[1-9])\/\d{4} (1[0-2]|0?[1-9]):([0-5][0-9]) (AM|PM)$/;
 
   return datePattern.test(textContent);
 }
 
-// --- Check if the given date is in the correct format DD/MM/YYYY HH:MM ---
+/**
+ * @description Checks if a string is a valid date in DD/MM/YYYY HH:MM (24-hour) format.
+ * @param {string} textContent - The string to validate.
+ * @returns {boolean} True if the string matches the date format, false otherwise.
+ */
 function isValidDateFormatDDMMnoAMPM(textContent) {
   const datePattern = /^(0?[1-9]|[12][0-9]|3[01])\/(0?[1-9]|1[012])\/\d{4} ([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
 
   return datePattern.test(textContent);
 }
 
-// --- Check if the given date is in the correct format MM/DD/YYYY HH:MM ---
+/**
+ * @description Checks if a string is a valid date in MM/DD/YYYY HH:MM (24-hour) format.
+ * @param {string} textContent - The string to validate.
+ * @returns {boolean} True if the string matches the date format, false otherwise.
+ */
 function isValidDateFormatMMDDnoAMPM(textContent) {
   const datePattern = /^(0?[1-9]|1[0-2])\/(0?[1-9]|[12][0-9]|3[01])\/\d{4} ([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
   return datePattern.test(textContent);
 }
 
 
-// --- If the date format is DD/MM/YYYY, convert it to MM/DD/YYYY ---
+/**
+ * @description Converts a date string from DD/MM/YYYY to MM/DD/YYYY format.
+ * @param {string} inputDate - The date string to convert.
+ * @returns {string} The converted date string.
+ */
 function convertDateFormat2(inputDate) {
   // Split the input date string into date and time parts
   const [datePart, timePart, isAmPm] = inputDate.split(' ');
@@ -551,6 +677,10 @@ function convertDateFormat2(inputDate) {
   return outputDate;
 }
 
+/**
+ * @description Gets the current day of the month.
+ * @returns {number} The day of the month (1-31).
+ */
 function getDayOfMonth() {
   // Create a new Date object to get the current date
   var currentDate = new Date();
@@ -562,6 +692,10 @@ function getDayOfMonth() {
   return dayOfMonth;
 }
 
+/**
+ * @description Gets the current month.
+ * @returns {number} The month (1-12).
+ */
 function getCurrentMonth() {
   // Create a new Date object to get the current date
   var currentDate = new Date();
@@ -573,6 +707,10 @@ function getCurrentMonth() {
   return month;
 }
 
+/**
+ * @description Gets the current four-digit year.
+ * @returns {number} The current year.
+ */
 function getCurrentYear() {
   // Create a new Date object to get the current date
   var currentDate = new Date();
@@ -584,6 +722,11 @@ function getCurrentYear() {
   return year;
 }
 
+/**
+ * @description Converts a date string from DD/MM/YYYY HH:MM (24-hour) to MM/DD/YYYY HH:MM AM/PM format.
+ * @param {string} dateString - The date string to convert.
+ * @returns {string} The converted date string.
+ */
 function convertDateFormatDDMMwithAMPM(dateString) {
   // Split the date and time parts
   const [datePart, timePart] = dateString.split(' ');
@@ -606,6 +749,11 @@ function convertDateFormatDDMMwithAMPM(dateString) {
     `${String(hours12).padStart(2, '0')}:${String(minutes).padStart(2, '0')} ${amPm}`;
 }
 
+/**
+ * @description Converts a date string from MM/DD/YYYY HH:MM (24-hour) to MM/DD/YYYY HH:MM AM/PM format.
+ * @param {string} dateString - The date string to convert.
+ * @returns {string} The converted date string.
+ */
 function convertDateFormatMMDDwithAMPM(dateString) {
   const [datePart, timePart] = dateString.split(' ');
   const [month, day, year] = datePart.split('/');
@@ -627,7 +775,12 @@ function convertDateFormatMMDDwithAMPM(dateString) {
   return formattedDate;
 }
 
-// --- Convert the found dateString to the correct format MM/DD/YYYY HH:MM AM/PM ---
+/**
+ * @description Intelligently converts a date string that could be in either DD/MM/YYYY or MM/DD/YYYY format
+ * to a standardized MM/DD/YYYY HH:MM AM/PM format. It uses heuristics to determine the original format.
+ * @param {string} inputDate - The date string to convert.
+ * @returns {string} The standardized date string.
+ */
 function convertDateFormat(inputDate) {
   // Split the input date string into date and time parts
   const [datePart, timePart, isAmPm] = inputDate.split(' ');
@@ -687,7 +840,11 @@ function convertDateFormat(inputDate) {
   return outputDate;
 }
 
-// --- Check if the row element has the term "Open" but not "Re-opened", and returns true if both are fulfilled. Returns true if the row has "New" as term for whole cell ---
+/**
+ * @description Checks if a table row represents a case with a status of "Open" or "New", but not "Re-opened".
+ * @param {HTMLTableRowElement} rowElement - The table row element to check.
+ * @returns {boolean} True if the case status is "Open" or "New", but not "Re-opened".
+ */
 function hasOpenButNotReopened(rowElement) {
   const statusElements = rowElement.querySelectorAll("td span span");
   let isOpenFound = false;
@@ -712,7 +869,11 @@ function hasOpenButNotReopened(rowElement) {
   }
 }
 
-// Main function to check and handle anchor elements
+/**
+ * @description Main function for the "Open Cases Highlighter" feature. It scans tables for open cases,
+ * parses date/time information, calculates the age of the case, and highlights the row based on how
+ * long it has been open.
+ */
 function handleCases() {
   let webTables = document.querySelectorAll('table');
 
@@ -816,8 +977,10 @@ function findElementsWithIdContainingText() {
 }
 */
 
-// return the right colour for ScholarOne statuses
-
+/**
+ * @description Checks if the current page is the "Cases - Console" page in Salesforce Classic.
+ * @returns {boolean} True if the page title matches, false otherwise.
+ */
 function casePageCheck() {
   var titleElement = document.querySelector("head > title");
   if (titleElement && titleElement.textContent === "Cases - Console") {
@@ -829,6 +992,11 @@ function casePageCheck() {
   }
 }
 
+/**
+ * @description Returns a color code based on the case status text for ScholarOne.
+ * @param {string} statusText - The text of the case status.
+ * @returns {string} A CSS color string.
+ */
 function scholarOneStatusColors(statusText) {
   if (statusText === "New" || statusText === "Assigned" || statusText === "Failed QA") {
     return "rgb(191, 39, 75)";
@@ -843,8 +1011,9 @@ function scholarOneStatusColors(statusText) {
   }
 }
 
-// find all elements containing CASES_STATUS ids and convert the div element
-
+/**
+ * @description Finds all case status elements in ScholarOne SFDC classic and replaces them with a styled span (pill).
+ */
 function divElementChangerScholarOne() {
   // Get all div elements in the document
   var divElements = document.getElementsByTagName("div");
@@ -879,6 +1048,10 @@ function divElementChangerScholarOne() {
   }
 }
 
+/**
+ * @description Main handler for the ScholarOne case status highlighter. It checks if it's on the correct page
+ * and then initializes the highlighting and sets up event listeners to re-apply highlighting on changes.
+ */
 function scholarOneHandleStatus() {
   if (casePageCheck()) {
 
@@ -910,12 +1083,19 @@ function scholarOneHandleStatus() {
 
 // > Lightning SFDC
 
-// --- Generate the style declaration for the handleStatus function ---
+/**
+ * @description Generates a CSS style string for creating a colored "pill" background for status text.
+ * @param {string} color - The background color for the pill.
+ * @returns {string} The CSS style string.
+ */
 function generateStyle(color) {
   return `background-color: ${color}; border-radius: 6px; padding: 3px 6px; color: white; font-weight: 500;`;
 }
 
-// Main function to check and highlight status elements
+/**
+ * @description Main function for the "Case Status Highlighter" feature in Salesforce Lightning.
+ * It scans tables for case status cells and applies a colored pill style based on the status text.
+ */
 function handleStatus() {
   let webTables = document.querySelectorAll('table');
 
