@@ -1126,6 +1126,33 @@ function handleStatus() {
 
 }
 
+/**
+ * @description Highlights the Category and Sub-Category fields with a light yellow color
+ * to draw attention to them on the case page.
+ */
+function highlightCategoryFields() {
+  const highlightColor = '#FFFBEA'; // A light, non-intrusive yellow
+
+  // Salesforce labels are often within span elements.
+  const allSpans = document.querySelectorAll('span');
+
+  allSpans.forEach(span => {
+    const text = span.textContent.trim();
+    if (text === 'Category' || text === 'Sub-Category') {
+      // The interactive field is typically located within the same 'form-element' container as the label.
+      const formElement = span.closest('.slds-form-element');
+      if (formElement) {
+        // The dropdown is often implemented as a button that opens a combobox.
+        const dropdownButton = formElement.querySelector('button.slds-combobox__input');
+        if (dropdownButton) {
+          dropdownButton.style.backgroundColor = highlightColor;
+        }
+      }
+    }
+  });
+}
+
+
 // EVENT LISTENERS FOR EXECUTING FUNCTIONS
 
 // Observe the document for mutations (changes in the DOM)
@@ -1133,6 +1160,7 @@ const observer = new MutationObserver(() => {
   handleAnchors();
   handleCases();
   handleStatus();
+  highlightCategoryFields();
 });
 
 // Call functions initially - because they use event listener appended to the element instead
