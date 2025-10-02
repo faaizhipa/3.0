@@ -90,52 +90,6 @@ const emailKeywordsWoS = [
   'bisqa',
 ];
 
-const emailScholarOne = "s1help@clarivate.com";
-const emailKeywordsScholarOne = [
-  'ts.',
-  'ts-',
-  'techstreet',
-  'account',
-  'tr.',
-  'queries',
-  'wos', 'WOS',
-  'jgear',
-  'jstead',
-  'derwent',
-  'customer',
-  'scientific',
-  'proposals',
-  'service',
-  'custserv',
-  'endnote',
-  'collections',
-  'invoices',
-  'serion',
-  'services',
-  'compumark',
-  'admin',
-  'contract',
-  'ipsci',
-  'ips',
-  'drg',
-  'dartsip',
-  'hidadataprogram',
-  'cortellis',
-  'compuMark',
-  'account',
-  'billing',
-  'invoice',
-  'certificate',
-  'tax',
-  'support',
-  'askhbi',
-  'cash',
-  'team',
-  'sales',
-  'bis.in', 'bis.mon',
-  'bisqa',
-];
-
 const emailAccountSupport = "account.support@clarivate.com"
 const emailKeywordsAccountSupport = [
   'ts.',
@@ -333,9 +287,6 @@ chrome.runtime.sendMessage({ message: 'getSavedSelection' }, function (response)
     if (savedSelection === 'EndNote') {
       desiredTextSelection = emailEndNote;
       emailKeywordsSelection = emailKeywordsEndNote;
-    } else if (savedSelection === 'ScholarOne') {
-      desiredTextSelection = emailScholarOne;
-      emailKeywordsSelection = emailKeywordsScholarOne;
     } else if (savedSelection === 'WebOfScience') {
       desiredTextSelection = emailWoS;
       emailKeywordsSelection = emailKeywordsWoS;
@@ -368,56 +319,6 @@ chrome.runtime.sendMessage({ message: 'getSavedSelection' }, function (response)
   return anchor.textContent.includes(desiredText);
 }
  */
-
-// > For SFDC Classic (ScholarOne)
-
-function emailPageCheck() {
-  let h1Elements = document.getElementsByTagName('h1');
-
-  let result = false;
-
-  for (let h1Element of h1Elements) {
-    if (h1Element.className == 'pageType' && h1Element.textContent == 'Email Message:') {
-      result = true;
-      break;
-    }
-  }
-
-  console.log(result);
-
-  return result;
-}
-
-function changeS1AnchorBackgroundColor() {
-
-  var selectEmailElement = document.querySelector('select#p26');
-
-  if (selectEmailElement.selectedIndex === 0) {
-    selectEmailElement.style.backgroundColor = "#ff9eb6";
-    console.log('color changed to red');
-  } else if (selectEmailElement.selectedIndex === 11) {
-    selectEmailElement.style.backgroundColor = "";
-    console.log('color changed to normal');
-  } else {
-    selectEmailElement.style.backgroundColor = "#ffd676";
-    console.log('color changed to orange');
-  }
-
-}
-
-function scholarOneHandleAnchor() {
-  if (emailPageCheck()) {
-
-    // runs the backgroundcolourchange for ScholarOne SFDC once initially.
-    changeS1AnchorBackgroundColor();
-
-    document.querySelector('select#p26').addEventListener('change', function () {
-      changeS1AnchorBackgroundColor();
-      console.log('The selected option has changed.');
-
-    });
-  }
-}
 
 // > For SFDC Lightning
 
@@ -783,130 +684,6 @@ function handleCases() {
 
 
 // --- CASE STATUS HIGHLIGHTER ---
-
-// > ScholarOne SFDC
-
-/*
-
-<span style="background-color: ${color}!!!; border-radius: 6px; padding: 3px 6px; color: white; font-weight: 500;">Assigned</span>
-
-*/
-
-/*
-// find all elements containing CASES_STATUS ids
-
-function findElementsWithIdContainingText() {
-  // Get all elements in the document
-  var allElements = document.getElementsByTagName("*");
-
-  // Initialize an array to hold the matching elements
-  var matchingElements = [];
-
-  // Loop through all elements
-  for (var i = 0; i < allElements.length; i++) {
-      // If the id of the current element contains "CASES_STATUS"
-      if (allElements[i].id.includes("CASES_STATUS")) {
-          // Add the current element to the array of matching elements
-          matchingElements.push(allElements[i]);
-      }
-  }
-
-  // Return the array of matching elements
-  return matchingElements;
-}
-*/
-
-// return the right colour for ScholarOne statuses
-
-function casePageCheck() {
-  var titleElement = document.querySelector("head > title");
-  if (titleElement && titleElement.textContent === "Cases - Console") {
-    console.log("cases true");
-    return true;
-
-  } else {
-    return false;
-  }
-}
-
-function scholarOneStatusColors(statusText) {
-  if (statusText === "New" || statusText === "Assigned" || statusText === "Failed QA") {
-    return "rgb(191, 39, 75)";
-  } else if (statusText === "Waiting" || statusText === "Updated") {
-    return "rgb(247, 114, 56)";
-  } else if (statusText === "Escalated" || statusText === "On Hold" || statusText === "Pending Approval" || statusText === "Pending QA Review") {
-    return "rgb(140, 77, 253)";
-  } else if (statusText === "Released" || statusText === "Passed QA" || statusText === "Closed") {
-    return "rgb(45, 200, 64)";
-  } else if (statusText === "Ready for QA" || statusText === "Ready for DBA" || statusText === "Ready for Data Architect") {
-    return "rgb(251, 178, 22)";
-  }
-}
-
-// find all elements containing CASES_STATUS ids and convert the div element
-
-function divElementChangerScholarOne() {
-  // Get all div elements in the document
-  var divElements = document.getElementsByTagName("div");
-
-  // Loop through all div elements
-  for (var i = 0; i < divElements.length; i++) {
-    // If the id of the current div element contains "CASES_STATUS"
-
-    if (divElements[i].id.includes("CASES_STATUS")) {
-      // Create a new span element
-      console.log(i);
-      var span = document.createElement("span");
-      console.log(divElements[i].textContent.trim());
-
-
-      // Set the style of the span element
-      span.style.backgroundColor = scholarOneStatusColors(divElements[i].textContent.trim());
-      span.style.borderRadius = "6px";
-      span.style.padding = "3px 6px";
-      span.style.color = "white";
-      span.style.fontWeight = "500";
-
-      // Set the text of the span element to the current text of the div element
-      span.textContent = divElements[i].textContent.trim();
-
-      // Clear the current content of the div element
-      divElements[i].textContent = "";
-
-      // Append the span element to the div element
-      divElements[i].appendChild(span);
-    }
-  }
-}
-
-function scholarOneHandleStatus() {
-  if (casePageCheck()) {
-
-    console.log("main function started");
-
-    // runs the backgroundcolourchange for ScholarOne SFDC once initially.
-    divElementChangerScholarOne();
-
-    document.querySelector("form").addEventListener('change', function () {
-
-      console.log('The TABLE ELEMENT has changed.');
-
-      divElementChangerScholarOne();
-
-
-
-    });
-
-    setTimeout(function () {
-      // Your function goes here
-      divElementChangerScholarOne();
-      console.log("This function runs after 1 second");
-    }, 1000);
-
-    console.log("main function finished");
-  }
-}
-
 
 // > Lightning SFDC
 
