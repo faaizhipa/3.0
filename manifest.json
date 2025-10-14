@@ -17,13 +17,13 @@
          "matches": [ 
             "https://clarivateanalytics.lightning.force.com/*", 
             "https://clarivateanalytics--preprod.sandbox.lightning.force.com/*", 
-            "https://scholarone.my.salesforce.com/*",
-            "https://proquestllc.lightning.force.com/*"
+            "https://scholarone.my.salesforce.com/*"
          ],
          "run_at": "document_idle"
       },
       {
          "js": [
+            "content_script.js",
             "modules/pageIdentifier.js",
             "modules/settingsManager.js",
             "modules/customerDataManager.js",
