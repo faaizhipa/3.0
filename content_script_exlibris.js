@@ -142,12 +142,18 @@
       this.cleanup();
 
       // Initialize features based on page type
+      console.log('[ExLibris Extension] Checking page type:', pageInfo.type);
+      console.log('[ExLibris Extension] CASES_LIST constant:', PageIdentifier.pageTypes.CASES_LIST);
+      console.log('[ExLibris Extension] Match?', pageInfo.type === PageIdentifier.pageTypes.CASES_LIST);
+      
       if (pageInfo.type === PageIdentifier.pageTypes.CASE_PAGE) {
         await this.initializeCasePageFeatures();
       } else if (pageInfo.type === PageIdentifier.pageTypes.CASE_COMMENTS) {
         await this.initializeCaseCommentsFeatures();
       } else if (pageInfo.type === PageIdentifier.pageTypes.CASES_LIST) {
         await this.initializeCaseListFeatures();
+      } else {
+        console.warn('[ExLibris Extension] Unknown page type, no features initialized');
       }
     },
 
@@ -252,10 +258,17 @@
      * Initializes features for case list page
      */
     async initializeCaseListFeatures() {
-      console.log('[ExLibris Extension] Initializing case list features...');
+      console.log('[ExLibris Extension] ========== INITIALIZING CASE LIST FEATURES ==========');
+      
+      console.log('[ExLibris Extension] Checking function availability:');
+      console.log('  - handleCases:', typeof handleCases);
+      console.log('  - handleStatus:', typeof handleStatus);
+      console.log('  - handleAnchors:', typeof handleAnchors);
 
       // Wait for table to load
+      console.log('[ExLibris Extension] Waiting for case list table...');
       await this.waitForCaseListTable();
+      console.log('[ExLibris Extension] Table found!');
 
       // Run legacy case list functions from content_script.js
       
