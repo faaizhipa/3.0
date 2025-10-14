@@ -362,6 +362,10 @@ async function ensureFullPageLoad() {
 
 // --- Main Logic ---
 
+function initCaseCommentExtractor() {
+    CaseCommentExtractor.initialize();
+}
+
 /**
  * Observes the DOM for changes and triggers actions based on the identified page type.
  * @param {string} pageType The type of page identified by the background script.
@@ -420,6 +424,8 @@ async function handlePageChanges(pageType) {
             }
         });
         listObserver.observe(document.body, { childList: true, subtree: true });
+    } else if (pageType === 'Case_Comments_Page') {
+        initCaseCommentExtractor();
     }
 }
 
@@ -1054,6 +1060,204 @@ function getSqlQuery(entity, custId, instId) {
     };
     return queries[entity] || 'Query not found for this entity.';
 }
+
+
+// --- Case Comment Extractor ---
+
+const CaseCommentExtractor = (() => {
+    'use strict';
+    let buttonsInjected = false;
+    let extractorObserver = null;
+    let currentCaseId = null;
+
+    function getCurrentCaseId() {
+        const urlMatch = window.location.pathname.match(/\/(?:Case|lightning\/r\/Case)\/([a-zA-Z0-9]{15,18})/i);
+        return urlMatch?.[1] || null;
+    }
+
+    function escapeXML(str) {
+        if (typeof str !== 'string') return '';
+        return str.replace(/[<>&"']/g, (c) => `&#${c.charCodeAt(0)};`);
+    }
+
+    function formatCommentDate(dateStr) {
+        if (!dateStr || dateStr === 'N/A') return 'N/A';
+        try {
+            let date = new Date(dateStr.replace(/,/g, ''));
+            if (isNaN(date.getTime())) return dateStr;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${day}/${month}/${year} ${hours}:${minutes}`;
+        } catch (e) {
+            return dateStr;
+        }
+    }
+
+    function showToast(message, type = 'success') {
+        if (typeof $A !== 'undefined' && $A.get) {
+            try {
+                const toastEvent = $A.get('e.force:showToast');
+                if (toastEvent) {
+                    toastEvent.setParams({ title: type.charAt(0).toUpperCase() + type.slice(1), message, type, mode: 'dismissible' });
+                    toastEvent.fire();
+                    return;
+                }
+            } catch (e) { console.error('Error firing native toast', e); }
+        }
+        const toast = document.createElement('div');
+        Object.assign(toast.style, { position: 'fixed', top: '20px', right: '20px', padding: '12px 20px', borderRadius: '4px', color: 'white', zIndex: '9999', fontSize: '14px', transition: 'opacity 0.5s ease-out', backgroundColor: type === 'success' ? '#4CAF50' : '#F44336' });
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3500);
+    }
+
+    async function copyToClipboard(text) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch (err) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            const successful = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            return successful;
+        }
+    }
+
+    function extractCaseMetadata() {
+        // Simplified for brevity. The full implementation would be more robust.
+        const metadata = {
+            caseId: getCurrentCaseId() || 'N/A',
+            caseNumber: document.querySelector('lightning-formatted-text[data-output-element-id="output-field"]')?.textContent.trim() || 'N/A',
+            subject: document.querySelector('div[data-target-selection-name="sfdc:RecordField.Case.Subject"] lightning-formatted-text')?.textContent.trim() || 'N/A',
+        };
+        return metadata;
+    }
+
+    function findCommentsTable(buttonContainer) {
+        // Traverse up to find the card container, then search down for the table.
+        let parent = buttonContainer;
+        for (let i = 0; i < 10; i++) { // Limit search depth to 10 levels
+            if (parent.matches('lightning-card, article.slds-card, .forceRelatedListCardDesktop')) {
+                const table = parent.querySelector('table.slds-table, table.list');
+                if (table) return table;
+            }
+            parent = parent.parentElement;
+            if (!parent) break;
+        }
+        return null;
+    }
+
+    function extractCommentsFromTable(table) {
+        const comments = [];
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const author = row.cells[1]?.innerText.trim() || 'N/A';
+            const isPublic = row.cells[2]?.querySelector('img')?.alt.toLowerCase() === 'true';
+            const date = row.cells[3]?.innerText.trim() || 'N/A';
+            const commentText = row.cells[4]?.innerText.trim() || 'N/A';
+            comments.push({ author, isPublic, date, commentText });
+        });
+        return comments;
+    }
+
+    function generateXML(data) {
+        if (!data || !data.comments) return '<error>No data extracted</error>';
+        const getMeta = (key) => data.metadata?.[key] || '';
+        const escape = escapeXML;
+        let xml = '<case>\\n';
+        xml += '  <metadata>\\n';
+        xml += `    <caseId>${escape(getMeta('caseId'))}</caseId>\\n`;
+        xml += `    <caseNumber>${escape(getMeta('caseNumber'))}</caseNumber>\\n`;
+        xml += `    <subject>${escape(getMeta('subject'))}</subject>\\n`;
+        xml += '  </metadata>\\n';
+        xml += '  <updates>\\n';
+        data.comments.forEach((comment) => {
+            xml += `    <comment public="${comment.isPublic ? 'true' : 'false'}">\\n`;
+            xml += `      <author>${escape(comment.author)}</author>\\n`;
+            xml += `      <date>${escape(formatCommentDate(comment.date))}</date>\\n`;
+            xml += `      <text>${escape(comment.commentText)}</text>\\n`;
+            xml += '    </comment>\\n';
+        });
+        xml += '  </updates>\\n</case>';
+        return xml;
+    }
+
+    function generateTable(data) {
+        if (!data || !data.comments) return 'No data available';
+        const getMeta = (key) => data.metadata?.[key] || 'N/A';
+        let table = `Case ID:\\t${getMeta('caseId')}\\n`;
+        table += `Case Number:\\t${getMeta('caseNumber')}\\n`;
+        table += `Subject:\\t${getMeta('subject')}\\n`;
+        table += '\\n';
+        table += 'Author\\tPublic\\tDate\\tComment\\n';
+        data.comments.forEach((comment) => {
+            const escapedComment = (comment.commentText || '').replace(/\\t/g, ' ').replace(/\\n/g, ' ');
+            const formattedDate = formatCommentDate(comment.date);
+            table += `${comment.author || 'N/A'}\\t${comment.isPublic ? 'Yes' : 'No'}\\t${formattedDate}\\t${escapedComment}\\n`;
+        });
+        return table;
+    }
+
+    return {
+        initialize: () => {
+            if (getCurrentCaseId()) {
+                const observer = new MutationObserver(() => {
+                    const actionContainer = document.querySelector('.branding-actions.slds-button-group[data-aura-class="oneActionsRibbon forceActionsContainer"]');
+                    if (actionContainer && !actionContainer.querySelector('#extract-comments-btn')) {
+                        const extractButton = document.createElement('button');
+                        extractButton.id = 'extract-comments-btn';
+                        extractButton.className = 'slds-button slds-button_neutral';
+                        extractButton.textContent = 'Extract Comments';
+                        actionContainer.appendChild(extractButton);
+
+                        extractButton.addEventListener('click', () => {
+                            const commentsTable = findCommentsTable(actionContainer);
+                            if (commentsTable) {
+                                const data = {
+                                    metadata: extractCaseMetadata(),
+                                    comments: extractCommentsFromTable(commentsTable)
+                                };
+                                extractButton.style.display = 'none';
+
+                                const copyTableBtn = document.createElement('button');
+                                copyTableBtn.className = 'slds-button slds-button_neutral';
+                                copyTableBtn.textContent = 'Copy Table';
+                                copyTableBtn.onclick = async () => {
+                                    const success = await copyToClipboard(generateTable(data));
+                                    showToast(success ? 'Table copied' : 'Copy failed', success ? 'success' : 'error');
+                                };
+
+                                const copyXmlBtn = document.createElement('button');
+                                copyXmlBtn.className = 'slds-button slds-button_neutral';
+                                copyXmlBtn.textContent = 'Copy XML';
+                                copyXmlBtn.onclick = async () => {
+                                    const success = await copyToClipboard(generateXML(data));
+                                    showToast(success ? 'XML copied' : 'Copy failed', success ? 'success' : 'error');
+                                };
+
+                                const buttonGroup = document.createElement('div');
+                                buttonGroup.className = 'slds-button-group';
+                                buttonGroup.role = 'group';
+                                buttonGroup.appendChild(copyTableBtn);
+                                buttonGroup.appendChild(copyXmlBtn);
+                                actionContainer.appendChild(buttonGroup);
+                            } else {
+                                showToast('Case comments table not found.', 'error');
+                            }
+                        });
+                    }
+                });
+                observer.observe(document.body, { childList: true, subtree: true });
+            }
+        }
+    };
+})();
 
 
 // --- Event Listeners ---
