@@ -324,16 +324,54 @@ function handleStatus() {
 }
 
 
+// --- Page Load & Scroll Handling ---
+
+/**
+ * Ensures the entire page is loaded by scrolling to the bottom and waiting for mutations to cease.
+ * Restores the user's original scroll position.
+ */
+async function ensureFullPageLoad() {
+    return new Promise((resolve) => {
+        const originalScrollY = window.scrollY;
+        window.scrollTo(0, document.body.scrollHeight);
+
+        let mutationTimeout;
+        const observer = new MutationObserver(() => {
+            clearTimeout(mutationTimeout);
+            mutationTimeout = setTimeout(() => {
+                observer.disconnect();
+                window.scrollTo(0, originalScrollY);
+                resolve();
+            }, 500); // Wait for 500ms of no mutations
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+        // Safety fallback timeout
+        setTimeout(() => {
+            observer.disconnect();
+            window.scrollTo(0, originalScrollY);
+            resolve();
+        }, 1000); // Max wait of 1 second
+    });
+}
+
+
 // --- Main Logic ---
 
 /**
  * Observes the DOM for changes and triggers actions based on the identified page type.
  * @param {string} pageType The type of page identified by the background script.
  */
-function handlePageChanges(pageType) {
+async function handlePageChanges(pageType) {
     if (pageType === 'Esploro_Customers_Wiki') {
+        await ensureFullPageLoad();
         scrapeCustomerData();
     } else if (pageType === 'Case_Page') {
+        await ensureFullPageLoad();
         const caseId = window.location.pathname.match(/\/Case\/([a-zA-Z0-9]{18})/)[1];
 
         const observer = new MutationObserver((mutations, obs) => {
