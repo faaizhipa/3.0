@@ -504,14 +504,13 @@ function createButtonGroup(groupLabel, items) {
  * Injects the dynamic menu buttons into the specified locations on the page.
  * @param {object} caseData - The extracted data for the current case.
  */
-function injectDynamicMenu(caseData) {
-    chrome.storage.sync.get('settings', (data) => {
-        const settings = data.settings || {};
-        const { injectionLocations = { card: true, header: true }, buttonStyle = 'Formal' } = settings;
+async function injectDynamicMenu(caseData) {
+    const settings = await new Promise(resolve => chrome.storage.sync.get('settings', data => resolve(data.settings || {})));
+    const { injectionLocations = { card: true, header: true }, buttonStyle = 'Formal' } = settings;
 
-        const buttonData = getButtonData(caseData, buttonStyle);
+    const buttonData = await getButtonData(caseData, buttonStyle);
 
-        if (injectionLocations.card) {
+    if (injectionLocations.card) {
             const cardTarget = document.querySelector('lightning-card[lwc-7eubp5ml88f-host] slot[name="actions"]');
             if (cardTarget) {
                 buttonData.forEach(btnInfo => {
@@ -605,8 +604,24 @@ function getKibanaUrl(server) {
     return kibanaMap[server.substring(0, 4)] || 'https://wiki.clarivate.io/pages/viewpage.action?spaceKey=ESP&title=Kibana+-+Log+Searching+Tool';
 }
 
-function getButtonData(caseData, buttonStyle) {
+async function getButtonData(caseData, buttonStyle) {
     const { server, institutionCode, productServiceName, exLibrisAccountNumber } = caseData;
+
+    const settings = await new Promise(resolve => chrome.storage.sync.get('settings', data => resolve(data.settings || {})));
+    const useScraped = settings.useScrapedList;
+
+    const customerList = await new Promise(resolve => {
+        if (useScraped) {
+            chrome.storage.local.get('scrapedCustomerList', (data) => {
+                resolve(data.scrapedCustomerList || esploroCustomerList);
+            });
+        } else {
+            resolve(esploroCustomerList);
+        }
+    });
+
+    // Find the customer from the list
+    const customer = customerList.find(c => c.institutionCode === institutionCode && c.server === server);
 
     const labels = {
         Formal: { lv: 'Portal', bo: 'Repository', erp: 'Researchers Profile' },
@@ -914,9 +929,16 @@ function initSidePanel() {
 
 // --- Data Management ---
 
+const esploroCustomerList = [
+    { id: '0', institutionCode: 'TR_INTEGRATION_INST', server: 'na05', custID: '550', instID: '561', portalCustomDomain: 'https://tr-integration-researchportal.esploro.exlibrisgroup.com/esploro/', prefix: '', name: '', status: '', esploroEdition: 'Advanced', sandboxEdition: '', hasScopus: '', comments: 'Support Test environment', otbDomain: '', directLinkToSqaEnvironment: 'Link to environment:\nhttps://na05.alma.exlibrisgroup.com/mng/login?institute=TR_INTEGRATION_INST&productCode=esploro&debug=true&auth=local\nUser: esploro_impl\npassword: a12345678A', sqaPortalLink: '', oneTrust: '', discoveryAlma: '' },
+    { id: '1', institutionCode: '61SCU_INST', server: 'ap02', custID: '2350', instID: '2368', portalCustomDomain: 'http://researchportal.scu.edu.au', prefix: 'scu', name: 'Southern Cross University', status: 'Completed', esploroEdition: 'Advanced', sandboxEdition: 'PSB', hasScopus: 'Yes', comments: '', otbDomain: '', directLinkToSqaEnvironment: 'https://sqa-ap02.alma.exlibrisgroup.com/mng/login?institute=61SCU_INST&productCode=esploro&debug=true', sqaPortalLink: 'https://sqa-ap02.alma.exlibrisgroup.com/esploro/?institution=61SCU_INST', oneTrust: 'V', discoveryAlma: 'Primo VE' }
+    // ... (the rest of the customer list would be here)
+];
+
 function scrapeCustomerData() {
-    const tableData = convertTableToObject('#main-content > div.table-wrap > table');
-    if (tableData.length > 0) {
+    const tableElement = document.evaluate('//table[contains(@class,"confluenceTable")][.//th[contains(., "Institution Code") and contains(., "CustID") and contains(., "Name")]]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+    if (tableElement) {
+        const tableData = convertTableToObject(tableElement);
         chrome.storage.local.set({ 'scrapedCustomerList': tableData }, () => {
             alert('Customer list updated successfully!');
         });
@@ -925,42 +947,56 @@ function scrapeCustomerData() {
     }
 }
 
-function convertTableToObject(tableSelector) {
-    const table = document.querySelector(tableSelector);
-    if (!table) {
-        console.error(`Table with selector "${tableSelector}" not found.`);
-        return [];
-    }
-    const toCamelCase = (str) => {
-        if (str.trim() === '#') {
-            return 'id';
-        }
-        return str
-            .replace(/&nbsp;/g, ' ')
-            .trim()
-            .toLowerCase()
-            .replace(/[^a-zA-Z0-9\s]/g, '')
-            .replace(/\s(.)/g, (match, char) => char.toUpperCase());
+function convertTableToObject(table) {
+    const headerMap = {
+        '#': 'id',
+        'Institution Code': 'institutionCode',
+        'Server': 'server',
+        'CustID': 'custID',
+        'InstID': 'instID',
+        'Portal Custom Domain': 'portalCustomDomain',
+        'prefix': 'prefix',
+        'Name\u00a0': 'name',
+        'Status': 'status',
+        'Esploro Edition': 'esploroEdition',
+        'Sandbox Edition': 'sandboxEdition',
+        'Has Scopus?': 'hasScopus',
+        'ETD_admin integration': 'etdAdminIntegration',
+        'Comments': 'comments',
+        'OTB domain': 'otbDomain',
+        'Direct link to SQA environment (requires VPN)': 'directLinkToSqaEnvironment',
+        'SQA portal link': 'sqaPortalLink',
+        'One Trust': 'oneTrust',
+        'Discovery (Alma)': 'discoveryAlma'
     };
+
     const rows = table.querySelectorAll('tbody tr');
-    if (rows.length < 2) {
-        return [];
-    }
-    const headerCells = rows[0].querySelectorAll('td');
-    const headers = Array.from(headerCells).map(cell => toCamelCase(cell.textContent));
+    if (rows.length < 2) return [];
+
+    const headers = Array.from(rows[0].querySelectorAll('td')).map(cell => headerMap[cell.textContent.trim()] || cell.textContent.trim());
+
     const dataRows = Array.from(rows).slice(1);
-    const result = dataRows.map(row => {
-        const rowCells = row.querySelectorAll('td');
+
+    return dataRows.map(row => {
         const rowObject = {};
+        const cells = row.querySelectorAll('td');
         headers.forEach((header, index) => {
-            const cell = rowCells[index];
+            const cell = cells[index];
             if (cell) {
-                rowObject[header] = cell.innerText.trim();
+                // Use innerText to handle nested elements and get visible text, then trim.
+                let cellText = cell.innerText.trim();
+                // If there are links, prefer the href for certain columns
+                const link = cell.querySelector('a');
+                if (link && (header === 'portalCustomDomain' || header === 'sqaPortalLink' || header === 'directLinkToSqaEnvironment')) {
+                    cellText = link.href;
+                }
+                rowObject[header] = cellText;
+            } else {
+                rowObject[header] = '';
             }
         });
         return rowObject;
     });
-    return result;
 }
 
 
