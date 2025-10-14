@@ -20,6 +20,7 @@ function populateTimezones() {
  * Saves the user's settings to chrome.storage.sync.
  */
 function saveSettings() {
+    const teamSelection = document.getElementById('team-selection').value;
     const injectionLocations = {
         card: document.getElementById('inject-card').checked,
         header: document.getElementById('inject-header').checked
@@ -30,6 +31,7 @@ function saveSettings() {
 
     chrome.storage.sync.set({
         settings: {
+            teamSelection,
             injectionLocations,
             buttonStyle,
             timezone,
@@ -46,7 +48,10 @@ function saveSettings() {
 function loadSettings() {
     chrome.storage.sync.get('settings', (data) => {
         if (data.settings) {
-            const { injectionLocations, buttonStyle, timezone, useScrapedList } = data.settings;
+            const { teamSelection, injectionLocations, buttonStyle, timezone, useScrapedList } = data.settings;
+            if (teamSelection) {
+                document.getElementById('team-selection').value = teamSelection;
+            }
             if (injectionLocations) {
                 document.getElementById('inject-card').checked = injectionLocations.card;
                 document.getElementById('inject-header').checked = injectionLocations.header;

@@ -1,3 +1,54 @@
+// --- Email & Keyword Constants ---
+const emailEndNote = "endnote.support@clarivate.com";
+const emailKeywordsEndNote = ['ts.', 'ts-', 'techstreet', 'account', 'tr.', 'queries', 'jgear', 'jstead', 'derwent', 'customer', 'scientific', 'proposals', 'service', 'science', 'custserv', 'wos', 'WOS', 'collections', 'invoices', 'serion', 'services', 'compumark', 'admin', 'contract', 'ipsci', 'ips', 'drg', 'dartsip', 'hidadataprogram', 'cortellis', 'compuMark', 'account', 'billing', 'invoice', 'certificate', 'tax', 'support', 'askhbi', 'cash', 'team', 'sales', 'bis.in', 'bis.mon', 'bisqa'];
+const emailWoS = "wosg.support@clarivate.com";
+const emailKeywordsWoS = ['ts.', 'ts-', 'techstreet', 'account', 'tr.', 'queries', 'jgear', 'jstead', 'derwent', 'customer', 'scientific', 'proposals', 'service', 'custserv', 'endnote', 'collections', 'invoices', 'serion', 'services', 'compumark', 'admin', 'contract', 'ipsci', 'ips', 'drg', 'dartsip', 'hidadataprogram', 'cortellis', 'compuMark', 'account', 'billing', 'invoice', 'certificate', 'tax', 'support', 'askhbi', 'cash', 'team', 'sales', 'bis.in', 'bis.mon', 'bisqa'];
+const emailAccountSupport = "account.support@clarivate.com";
+const emailKeywordsAccountSupport = ['ts.', 'ts-', 'techstreet', 'endnote', 'tr.', 'queries', 'jgear', 'jstead', 'derwent', 'customer', 'scientific', 'proposals', 'service', 'science', 'custserv', 'wos', 'WOS', 'collections', 'invoices', 'serion', 'services', 'compumark', 'admin', 'contract', 'ipsci', 'ips', 'drg', 'dartsip', 'hidadataprogram', 'cortellis', 'compuMark', 'account', 'billing', 'invoice', 'certificate', 'tax', 'support', 'askhbi', 'cash', 'team', 'sales', 'bis.in', 'bis.mon', 'bisqa'];
+const emailLifeScience = "lifesciences.support@clarivate.com";
+const emailKeywordsLifeScience = ['ts.', 'ts-', 'techstreet', 'endnote', 'science', 'tr.', 'queries', 'jgear', 'jstead', 'derwent', 'customer', 'scientific', 'proposals', 'service', 'science', 'custserv', 'wos', 'WOS', 'collections', 'invoices', 'serion', 'services', 'compumark', 'admin', 'contract', 'ipsci', 'ips', 'drg', 'dartsip', 'hidadataprogram', 'cortellis', 'compuMark', 'account', 'billing', 'invoice', 'certificate', 'tax', 'support', 'askhbi', 'cash', 'team', 'sales', 'bis.in', 'bis.mon', 'bisqa'];
+const emailLifeScienceHDS = "DRG.customerservice@clarivate.com";
+const emailKeywordsLifeScienceHDS = ['ts.', 'ts-', 'techstreet', 'endnote', 'science', 'tr.', 'queries', 'jgear', 'jstead', 'derwent', 'customer', 'scientific', 'proposals', 'service', 'science', 'custserv', 'wos', 'WOS', 'collections', 'invoices', 'serion', 'services', 'compumark', 'admin', 'contract', 'ipsci', 'ips', 'drg', 'dartsip', 'hidadataprogram', 'cortellis', 'compuMark', 'account', 'billing', 'invoice', 'certificate', 'tax', 'support', 'askhbi', 'cash', 'team', 'sales', 'bis.in', 'bis.mon', 'bisqa'];
+const emailLifeSciencePS = ["lsclientservicesdl@clarivate.com", "lifesciences.support@clarivate.com"];
+const emailKeywordsLifeSciencePS = ['ts.', 'ts-', 'techstreet', 'endnote', 'science', 'tr.', 'queries', 'jgear', 'jstead', 'derwent', 'customer', 'scientific', 'proposals', 'service', 'science', 'custserv', 'wos', 'WOS', 'collections', 'invoices', 'serion', 'services', 'compumark', 'admin', 'contract', 'ipsci', 'ips', 'drg', 'dartsip', 'hidadataprogram', 'cortellis', 'compuMark', 'account', 'billing', 'invoice', 'certificate', 'tax', 'support', 'askhbi', 'cash', 'team', 'sales', 'bis.in', 'bis.mon', 'bisqa'];
+
+let desiredTextSelection, emailKeywordsSelection;
+
+// --- Initialization ---
+
+/**
+ * Fetches settings from storage and sets up the script's initial state.
+ */
+function initialize() {
+    chrome.storage.sync.get('settings', (data) => {
+        if (data.settings && data.settings.teamSelection) {
+            const savedSelection = data.settings.teamSelection;
+            if (savedSelection === 'EndNote') {
+                desiredTextSelection = emailEndNote;
+                emailKeywordsSelection = emailKeywordsEndNote;
+            } else if (savedSelection === 'WebOfScience') {
+                desiredTextSelection = emailWoS;
+                emailKeywordsSelection = emailKeywordsWoS;
+            } else if (savedSelection === 'AccountSupport') {
+                desiredTextSelection = emailAccountSupport;
+                emailKeywordsSelection = emailKeywordsAccountSupport;
+            } else if (savedSelection === 'LifeScience') {
+                desiredTextSelection = emailLifeScience;
+                emailKeywordsSelection = emailKeywordsLifeScience;
+            } else if (savedSelection === 'LifeScienceHDS') {
+                desiredTextSelection = emailLifeScienceHDS;
+                emailKeywordsSelection = emailKeywordsLifeScienceHDS;
+            } else if (savedSelection === 'LifeSciencePS') {
+                desiredTextSelection = emailLifeSciencePS;
+                emailKeywordsSelection = emailKeywordsLifeSciencePS;
+            }
+        }
+    });
+}
+
+initialize();
+
+
 // --- Data Extraction & Caching ---
 
 let caseDataCache = {};
@@ -58,6 +109,140 @@ function getCaseData() {
 }
 
 
+// --- Anchor Handling ---
+
+function isEndNoteSupportAnchor(anchor) {
+    let desiredText = desiredTextSelection || emailEndNote;
+    if (Array.isArray(desiredText)) {
+        for (let item of desiredText) {
+            if (anchor.textContent.includes(item)) {
+                return true;
+            }
+        }
+        return false;
+    } else {
+        return anchor.textContent.includes(desiredText);
+    }
+}
+
+function isClarivateEmailList(anchor) {
+    const emailKeywords = emailKeywordsSelection || emailKeywordsEndNote;
+    const clarivateDomain = '@clarivate.com';
+    for (let keyword of emailKeywords) {
+        if (anchor.textContent.includes(keyword) && anchor.textContent.includes(clarivateDomain)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function highlightAnchorWithSpecificContent(anchor, color) {
+    anchor.style.backgroundColor = color;
+}
+
+function unhighlightAnchor(anchor) {
+    anchor.style.backgroundColor = "";
+}
+
+function handleAnchors() {
+    const fromFieldDiv = document.getElementsByClassName("standardField uiMenu");
+    for (const fromDiv of fromFieldDiv) {
+        const anchor = fromDiv.querySelector("a.select");
+        if (!isEndNoteSupportAnchor(anchor)) {
+            if (!isClarivateEmailList(anchor)) {
+                highlightAnchorWithSpecificContent(anchor, "red");
+            } else {
+                highlightAnchorWithSpecificContent(anchor, "orange");
+            }
+        } else {
+            unhighlightAnchor(anchor);
+        }
+    }
+}
+
+
+// --- Case List Handling ---
+
+function getEarlierDate(date1Str, date2Str) {
+    const date1 = new Date(date1Str);
+    const date2 = new Date(date2Str);
+    return date1 < date2 ? date1 : date2;
+}
+
+function calculateTimeDifferenceInMinutes(date) {
+    const openDate = new Date(date);
+    const currentDate = new Date();
+    const timeDifferenceInMilliseconds = Math.abs(currentDate - openDate);
+    return timeDifferenceInMilliseconds / (1000 * 60);
+}
+
+function isValidDateFormat(textContent) {
+    const datePattern = /^(1[0-2]|0?[1-9])\/(3[01]|[12][0-9]|0?[1-9])\/\d{4} (1[0-2]|0?[1-9]):([0-5][0-9]) (AM|PM)$/;
+    return datePattern.test(textContent);
+}
+
+function handleCases() {
+    let webTables = document.querySelectorAll('table');
+    for (let table of webTables) {
+        const rows = table.querySelector('tbody').querySelectorAll('tr');
+        for (let row of rows) {
+            const dateArray = [];
+            const dateElements = row.querySelectorAll("td span span");
+            dateElements.forEach(element => {
+                if (isValidDateFormat(element.textContent)) {
+                    dateArray.push(element.textContent);
+                }
+            });
+
+            if (dateArray.length > 0) {
+                let earlierDate = dateArray.length === 2 ? getEarlierDate(dateArray[0], dateArray[1]) : new Date(dateArray[0]);
+                const caseMinutes = calculateTimeDifferenceInMinutes(earlierDate);
+
+                if (caseMinutes > 90) {
+                    highlightAnchorWithSpecificContent(row, "rgb(255, 220, 230)");
+                } else if (caseMinutes > 60) {
+                    highlightAnchorWithSpecificContent(row, "rgb(255, 232, 184)");
+                } else if (caseMinutes > 30) {
+                    highlightAnchorWithSpecificContent(row, "rgb(209, 247, 196)");
+                } else {
+                    highlightAnchorWithSpecificContent(row, "rgb(194, 244, 233)");
+                }
+            }
+        }
+    }
+}
+
+function generateStyle(color) {
+    return `background-color: ${color}; border-radius: 6px; padding: 3px 6px; color: white; font-weight: 500;`;
+}
+
+function handleStatus() {
+    let webTables = document.querySelectorAll('table');
+    for (let table of webTables) {
+        const rows = table.querySelector('tbody').querySelectorAll('tr');
+        for (let row of rows) {
+            let cells = row.querySelectorAll('td span span');
+            for (let cell of cells) {
+                let cellText = cell.textContent.trim();
+                if (cellText === "New Email Received" || cellText === "Re-opened" || cellText === "Completed by Resolver Group" || cellText === "New" || cellText === "Update Received") {
+                    cell.setAttribute("style", generateStyle("rgb(191, 39, 75)"));
+                } else if (cellText === "Pending Action" || cellText === "Initial Response Sent" || cellText === "In Progress") {
+                    cell.setAttribute("style", generateStyle("rgb(247, 114, 56)"));
+                } else if (cellText === "Assigned to Resolver Group" || cellText === "Pending Internal Response") {
+                    cell.setAttribute("style", generateStyle("rgb(140, 77, 253)"));
+                } else if (cellText === "Solution Delivered to Customer") {
+                    cell.setAttribute("style", generateStyle("rgb(45, 200, 64)"));
+                } else if (cellText === "Closed" || cellText === "Pending Customer Response") {
+                    cell.setAttribute("style", generateStyle("rgb(103, 103, 103)"));
+                } else if (cellText === "Pending System Update - Defect" || cellText === "Pending System Update - Enhancement") {
+                    cell.setAttribute("style", generateStyle("rgb(251, 178, 22)"));
+                }
+            }
+        }
+    }
+}
+
+
 // --- Main Logic ---
 
 /**
@@ -83,6 +268,18 @@ function handlePageChanges(pageType) {
                     highlightFields();
                     injectDynamicMenu(caseData);
                     initCaseCommentEnhancements();
+
+                    // Specific observer for the email composer
+                    const emailObserver = new MutationObserver((mutations, obs) => {
+                        const emailFromField = document.querySelector('.standardField.uiMenu');
+                        if (emailFromField) {
+                            handleAnchors();
+                            // This could be disconnected if it only needs to run once,
+                            // but we'll leave it on to handle dynamic UI changes.
+                        }
+                    });
+                    emailObserver.observe(document.body, { childList: true, subtree: true });
+
                 } else {
                     console.log('Cache hit. Using cached data.');
                 }
@@ -94,6 +291,16 @@ function handlePageChanges(pageType) {
             childList: true,
             subtree: true
         });
+    } else if (pageType === 'Cases_List_Page') {
+        const listObserver = new MutationObserver((mutations, obs) => {
+            const caseListTable = document.querySelector('table.slds-table');
+            if (caseListTable) {
+                handleCases();
+                handleStatus();
+                // We might want to keep this observer active to handle sorting/filtering
+            }
+        });
+        listObserver.observe(document.body, { childList: true, subtree: true });
     }
 }
 
