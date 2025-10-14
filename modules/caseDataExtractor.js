@@ -20,7 +20,10 @@ const CaseDataExtractor = {
       // Derived fields
       institutionCode: null,
       server: null,
-      serverRegion: null
+      serverRegion: null,
+      custID: null,
+      instID: null,
+      customerName: null
     };
   },
 
@@ -122,9 +125,9 @@ const CaseDataExtractor = {
   /**
    * Processes raw case data to derive additional fields
    * @param {Object} rawData - Raw extracted data
-   * @returns {Object} Processed data with derived fields
+   * @returns {Promise<Object>} Processed data with derived fields
    */
-  processData(rawData) {
+  async processData(rawData) {
     const processed = { ...rawData };
 
     // Derive Institution Code
@@ -145,16 +148,64 @@ const CaseDataExtractor = {
       }
     }
 
+    // Look up customer data (custID, instID, name)
+    if (processed.institutionCode && typeof CustomerDataManager !== 'undefined') {
+      const customer = await this.getCustomerData(processed.institutionCode);
+      if (customer) {
+        processed.custID = customer.custID || null;
+        processed.instID = customer.instID || null;
+        processed.customerName = customer.name || null;
+        
+        // Verify server matches (log warning if mismatch)
+        if (processed.server && customer.server) {
+          if (processed.server.toLowerCase() !== customer.server.toLowerCase()) {
+            console.warn(
+              `[CaseDataExtractor] Server mismatch: Case shows ${processed.server}, ` +
+              `customer list shows ${customer.server}`
+            );
+          }
+        }
+      } else {
+        console.warn(`[CaseDataExtractor] Customer not found: ${processed.institutionCode}`);
+      }
+    }
+
     return processed;
   },
 
   /**
-   * Gets complete processed case data
-   * @returns {Object}
+   * Gets customer data from CustomerDataManager
+   * @param {string} institutionCode
+   * @returns {Promise<Object|null>}
    */
-  getData() {
+  async getCustomerData(institutionCode) {
+    if (typeof CustomerDataManager === 'undefined') {
+      console.warn('[CaseDataExtractor] CustomerDataManager not available');
+      return null;
+    }
+
+    try {
+      return CustomerDataManager.findByInstitutionCode(institutionCode);
+    } catch (err) {
+      console.error('[CaseDataExtractor] Error getting customer data:', err);
+      return null;
+    }
+  },
+
+  /**
+   * Gets complete processed case data
+   * @returns {Promise<Object>}
+   */
+  async getData() {
     const rawData = this.extractCaseData();
-    return this.processData(rawData);
+    return await this.processData(rawData);
+  },
+
+  /**
+   * Cleans up the module
+   */
+  cleanup() {
+    // No persistent state to clean up
   }
 };
 

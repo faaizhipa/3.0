@@ -166,15 +166,47 @@ const FieldHighlighter = {
     // Initial highlight
     this.highlightAllFields();
 
-    // Observer for dynamic content changes
-    const observer = new MutationObserver(() => {
-      this.highlightAllFields();
-    });
+    // Debounced highlight function
+    let debounceTimer = null;
+    const debouncedHighlight = () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      debounceTimer = setTimeout(() => {
+        this.highlightAllFields();
+      }, 300); // 300ms debounce
+    };
 
-    observer.observe(document.body, {
+    // Observer for dynamic content changes
+    this.observer = new MutationObserver(debouncedHighlight);
+
+    this.observer.observe(document.body, {
       childList: true,
       subtree: true
     });
+
+    // Store debounce timer for cleanup
+    this.debounceTimer = debounceTimer;
+
+    console.log('[FieldHighlighter] Initialized with debouncing');
+  },
+
+  /**
+   * Cleans up the module
+   */
+  cleanup() {
+    if (this.observer) {
+      this.observer.disconnect();
+      this.observer = null;
+    }
+
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
+    }
+
+    this.removeAllHighlights();
+    console.log('[FieldHighlighter] Cleaned up');
   }
 };
 

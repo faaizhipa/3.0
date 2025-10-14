@@ -21,7 +21,7 @@
   const ExLibrisExtension = {
     currentPage: null,
     currentCaseId: null,
-    caseDataCache: new Map(),
+    isInitialized: false,
     settings: {
       menuLocations: {
         cardActions: false,
@@ -38,8 +38,55 @@
     async init() {
       console.log('[ExLibris Extension] Initializing...');
 
-      // Load settings
+      // Initialize SettingsManager first
+      if (typeof SettingsManager !== 'undefined') {
+        await SettingsManager.init();
+        this.settings = SettingsManager.get();
+        console.log('[ExLibris Extension] SettingsManager initialized');
+      } else {
+        console.warn('[ExLibris Extension] SettingsManager not loaded, using defaults');
+      }
+
+      // Initialize CustomerDataManager
+      if (typeof CustomerDataManager !== 'undefined') {
+        await CustomerDataManager.init();
+        console.log('[ExLibris Extension] CustomerDataManager initialized');
+      } else {
+        console.warn('[ExLibris Extension] CustomerDataManager not loaded');
+      }
+
+      // Initialize CacheManager
+      if (typeof CacheManager !== 'undefined') {
+        await CacheManager.init();
+        console.log('[ExLibris Extension] CacheManager initialized');
+      } else {
+        console.warn('[ExLibris Extension] CacheManager not loaded');
+      }
+
+      // Initialize ContextMenuHandler
+      if (typeof ContextMenuHandler !== 'undefined' && 
+          SettingsManager.isFeatureEnabled('contextMenu')) {
+        ContextMenuHandler.init();
+        console.log('[ExLibris Extension] ContextMenuHandler initialized');
+
+        // Request context menu creation
+        chrome.runtime.sendMessage({ action: 'createContextMenus' });
+      } else {
+        console.warn('[ExLibris Extension] ContextMenuHandler not loaded or disabled');
+      }
+
+      // Initialize KeyboardShortcuts
+      if (typeof KeyboardShortcuts !== 'undefined') {
+        KeyboardShortcuts.init(this.settings);
+        console.log('[ExLibris Extension] KeyboardShortcuts initialized');
+      } else {
+        console.warn('[ExLibris Extension] KeyboardShortcuts not loaded');
+      }
+
+      // Load settings (legacy support)
       await this.loadSettings();
+
+      this.isInitialized = true;
 
       // Start monitoring page changes
       this.startPageMonitoring();
@@ -99,6 +146,8 @@
         await this.initializeCasePageFeatures();
       } else if (pageInfo.type === PageIdentifier.pageTypes.CASE_COMMENTS) {
         await this.initializeCaseCommentsFeatures();
+      } else if (pageInfo.type === PageIdentifier.pageTypes.CASES_LIST) {
+        await this.initializeCaseListFeatures();
       }
     },
 
@@ -120,31 +169,48 @@
       }
 
       // Initialize field highlighting
-      if (this.settings.highlightingEnabled && typeof FieldHighlighter !== 'undefined') {
+      if (this.settings.highlightingEnabled && 
+          typeof FieldHighlighter !== 'undefined' &&
+          SettingsManager.isFeatureEnabled('fieldHighlighting')) {
         FieldHighlighter.init();
       }
 
       // Initialize dynamic menu
-      if (typeof URLBuilder !== 'undefined' && typeof DynamicMenu !== 'undefined') {
+      if (typeof URLBuilder !== 'undefined' && 
+          typeof DynamicMenu !== 'undefined' &&
+          SettingsManager.isFeatureEnabled('dynamicMenu')) {
+        const buttonStyle = this.settings?.exlibris?.ui?.buttonLabelStyle || this.settings.buttonLabelStyle || 'casual';
+        const timezone = this.settings?.exlibris?.ui?.timezone || this.settings.timezone || null;
+        const menuLocations = this.settings?.exlibris?.ui?.menuLocations || this.settings.menuLocations;
+
         const buttonGroups = URLBuilder.buildAllButtons(
           caseData,
-          this.settings.buttonLabelStyle,
-          this.settings.timezone
+          buttonStyle,
+          timezone
         );
 
-        DynamicMenu.setSettings(this.settings.menuLocations);
+        DynamicMenu.setSettings(menuLocations);
         DynamicMenu.injectMenu(buttonGroups, caseData);
       }
 
       // Initialize case comment memory
-      if (typeof CaseCommentMemory !== 'undefined') {
+      if (typeof CaseCommentMemory !== 'undefined' &&
+          SettingsManager.isFeatureEnabled('caseCommentMemory')) {
         CaseCommentMemory.init(this.currentCaseId);
         CaseCommentMemory.addRestoreButton(this.currentCaseId);
       }
 
       // Initialize character counter
-      if (typeof CharacterCounter !== 'undefined') {
+      if (typeof CharacterCounter !== 'undefined' &&
+          SettingsManager.isFeatureEnabled('characterCounter')) {
         CharacterCounter.init();
+      }
+
+      // Initialize multi-tab sync
+      if (typeof MultiTabSync !== 'undefined' &&
+          SettingsManager.isFeatureEnabled('multiTabSync')) {
+        MultiTabSync.init(this.currentCaseId);
+        console.log('[ExLibris Extension] MultiTabSync initialized');
       }
 
       console.log('[ExLibris Extension] Case page features initialized');
@@ -159,15 +225,83 @@
       await this.waitForElements();
 
       // Initialize case comment memory
-      if (typeof CaseCommentMemory !== 'undefined') {
+      if (typeof CaseCommentMemory !== 'undefined' &&
+          SettingsManager.isFeatureEnabled('caseCommentMemory')) {
         CaseCommentMemory.init(this.currentCaseId);
         CaseCommentMemory.addRestoreButton(this.currentCaseId);
       }
 
       // Initialize character counter
-      if (typeof CharacterCounter !== 'undefined') {
+      if (typeof CharacterCounter !== 'undefined' &&
+          SettingsManager.isFeatureEnabled('characterCounter')) {
         CharacterCounter.init();
       }
+    },
+
+    /**
+     * Initializes features for case list page
+     */
+    async initializeCaseListFeatures() {
+      console.log('[ExLibris Extension] Initializing case list features...');
+
+      // Wait for table to load
+      await this.waitForCaseListTable();
+
+      // Run the legacy case list highlighter
+      // This is from the original content_script.js
+      if (typeof handleCases === 'function') {
+        handleCases();
+        console.log('[ExLibris Extension] Case list highlighting applied');
+
+        // Set up observer to re-apply highlighting when table changes
+        this.observeCaseListChanges();
+      } else {
+        console.warn('[ExLibris Extension] handleCases function not available');
+      }
+    },
+
+    /**
+     * Waits for case list table to be present
+     * @returns {Promise<void>}
+     */
+    async waitForCaseListTable() {
+      return new Promise((resolve) => {
+        const checkTable = () => {
+          const table = document.querySelector('table tbody');
+          if (table) {
+            resolve();
+          } else {
+            setTimeout(checkTable, 100);
+          }
+        };
+        checkTable();
+      });
+    },
+
+    /**
+     * Observes case list table for changes and re-applies highlighting
+     */
+    observeCaseListChanges() {
+      const table = document.querySelector('table');
+      if (!table) return;
+
+      // Disconnect existing observer if any
+      if (this.caseListObserver) {
+        this.caseListObserver.disconnect();
+      }
+
+      this.caseListObserver = new MutationObserver(() => {
+        if (typeof handleCases === 'function') {
+          handleCases();
+        }
+      });
+
+      this.caseListObserver.observe(table, {
+        childList: true,
+        subtree: true
+      });
+
+      console.log('[ExLibris Extension] Case list observer initialized');
     },
 
     /**
@@ -176,14 +310,13 @@
      * @returns {Promise<Object>}
      */
     async getCaseData(caseId) {
-      // Check cache first
-      if (this.caseDataCache.has(caseId)) {
-        const cached = this.caseDataCache.get(caseId);
-
-        // Check if cache is still valid (based on last modified date)
+      // Check CacheManager first
+      if (typeof CacheManager !== 'undefined') {
         const currentLastModified = this.getLastModifiedDate();
-        if (cached.lastModifiedDate === currentLastModified) {
-          console.log('[ExLibris Extension] Using cached case data');
+        const cached = CacheManager.get(caseId, currentLastModified);
+        
+        if (cached) {
+          console.log('[ExLibris Extension] Using cached case data from CacheManager');
           return cached;
         }
       }
@@ -195,10 +328,12 @@
       }
 
       console.log('[ExLibris Extension] Extracting case data...');
-      const caseData = CaseDataExtractor.getData();
+      const caseData = await CaseDataExtractor.getData();
 
-      // Cache it
-      this.caseDataCache.set(caseId, caseData);
+      // Cache it in CacheManager
+      if (typeof CacheManager !== 'undefined' && caseData) {
+        await CacheManager.set(caseId, caseData);
+      }
 
       return caseData;
     },
@@ -279,9 +414,15 @@
      * Cleans up existing features
      */
     cleanup() {
+      // Disconnect case list observer
+      if (this.caseListObserver) {
+        this.caseListObserver.disconnect();
+        this.caseListObserver = null;
+      }
+
       // Remove highlights
-      if (typeof FieldHighlighter !== 'undefined') {
-        FieldHighlighter.removeAllHighlights();
+      if (typeof FieldHighlighter !== 'undefined' && FieldHighlighter.cleanup) {
+        FieldHighlighter.cleanup();
       }
 
       // Remove menus
@@ -293,6 +434,49 @@
       if (typeof CharacterCounter !== 'undefined') {
         CharacterCounter.remove();
       }
+
+      // Cleanup modules if they have cleanup methods
+      if (typeof CaseDataExtractor !== 'undefined' && CaseDataExtractor.cleanup) {
+        CaseDataExtractor.cleanup();
+      }
+
+      // Cleanup CaseCommentMemory
+      if (typeof CaseCommentMemory !== 'undefined' && CaseCommentMemory.cleanup) {
+        CaseCommentMemory.cleanup();
+      }
+
+      // Cleanup MultiTabSync
+      if (typeof MultiTabSync !== 'undefined' && MultiTabSync.cleanup) {
+        MultiTabSync.cleanup();
+      }
+    },
+
+    /**
+     * Complete cleanup (called on unload)
+     */
+    destroy() {
+      console.log('[ExLibris Extension] Destroying...');
+      
+      this.cleanup();
+
+      // Cleanup all modules
+      if (typeof CustomerDataManager !== 'undefined' && CustomerDataManager.cleanup) {
+        CustomerDataManager.cleanup();
+      }
+      if (typeof CacheManager !== 'undefined' && CacheManager.cleanup) {
+        CacheManager.cleanup();
+      }
+      if (typeof CaseCommentMemory !== 'undefined' && CaseCommentMemory.cleanup) {
+        CaseCommentMemory.cleanup();
+      }
+      if (typeof ContextMenuHandler !== 'undefined' && ContextMenuHandler.cleanup) {
+        ContextMenuHandler.cleanup();
+      }
+      if (typeof MultiTabSync !== 'undefined' && MultiTabSync.cleanup) {
+        MultiTabSync.cleanup();
+      }
+      
+      this.isInitialized = false;
     }
   };
 

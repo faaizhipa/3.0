@@ -948,11 +948,39 @@ function handleStatus() {
 
 // EVENT LISTENERS FOR EXECUTING FUNCTIONS
 
+// --- PAGE DETECTION HELPER ---
+function isOnCasesListPage() {
+  const url = window.location.href;
+  // Check if on Cases List View page
+  return url.includes('/lightning/o/Case/list') ||
+         url.includes('/lightning/o/Case/home') ||
+         // For Classic (ScholarOne) - check for Cases tab
+         (url.includes('/console#') && document.querySelector('title')?.textContent === 'Cases - Console');
+}
+
+function isOnEmailComposerPage() {
+  const url = window.location.href;
+  // Check if on a page where email composer might appear
+  // This includes case detail pages and email pages
+  return url.includes('/lightning/r/Case/') ||
+         url.includes('/lightning/cmp/emailui__EmailComposer') ||
+         // For Classic
+         url.includes('/_ui/core/email/author/EmailAuthor') ||
+         emailPageCheck(); // Use existing ScholarOne check
+}
+
 // Observe the document for mutations (changes in the DOM)
 const observer = new MutationObserver(() => {
-  handleAnchors();
-  handleCases();
-  handleStatus();
+  // Email validation runs on email composer pages
+  if (isOnEmailComposerPage()) {
+    handleAnchors();
+  }
+
+  // Case age and status highlighting ONLY runs on Cases List pages
+  if (isOnCasesListPage()) {
+    handleCases();
+    handleStatus();
+  }
 });
 
 // Call functions initially - because they use event listener appended to the element instead
@@ -969,6 +997,50 @@ handleStatus(); */
 observer.observe(document, {
   childList: true,
   subtree: true,
+});
+
+// --- URL CHANGE DETECTION ---
+// Lightning navigation doesn't always trigger page reloads, so we need to monitor URL changes
+let lastUrl = window.location.href;
+
+// Create an observer to detect when URL changes
+const urlObserver = new MutationObserver(() => {
+  const currentUrl = window.location.href;
+  if (currentUrl !== lastUrl) {
+    console.log('[Penang Extension] URL changed from', lastUrl, 'to', currentUrl);
+    lastUrl = currentUrl;
+
+    // Run appropriate handlers based on new page type
+    if (isOnEmailComposerPage()) {
+      handleAnchors();
+    }
+
+    if (isOnCasesListPage()) {
+      handleCases();
+      handleStatus();
+    }
+  }
+});
+
+// Start observing for URL changes
+urlObserver.observe(document.body, {
+  childList: true,
+  subtree: true
+});
+
+// Also listen to popstate event for back/forward navigation
+window.addEventListener('popstate', () => {
+  console.log('[Penang Extension] Navigation detected (popstate)');
+  lastUrl = window.location.href;
+
+  if (isOnEmailComposerPage()) {
+    handleAnchors();
+  }
+
+  if (isOnCasesListPage()) {
+    handleCases();
+    handleStatus();
+  }
 });
 
 

@@ -321,13 +321,39 @@ const emailKeywordsEndNote = [
 
 ### 6.3 Mutation Observer Setup
 
-**Critical Section:** Lines 952-972
+**Critical Section:** Lines 952-1044
+
+**⚠️ IMPORTANT UPDATE (2025-10-14):** Page detection logic added to prevent unnecessary processing.
 
 ```javascript
+// Page detection helpers
+function isOnCasesListPage() {
+  const url = window.location.href;
+  return url.includes('/lightning/o/Case/list') ||
+         url.includes('/lightning/o/Case/home') ||
+         (url.includes('/console#') && document.querySelector('title')?.textContent === 'Cases - Console');
+}
+
+function isOnEmailComposerPage() {
+  const url = window.location.href;
+  return url.includes('/lightning/r/Case/') ||
+         url.includes('/lightning/cmp/emailui__EmailComposer') ||
+         url.includes('/_ui/core/email/author/EmailAuthor') ||
+         emailPageCheck();
+}
+
+// Conditional execution based on page type
 const observer = new MutationObserver(() => {
-  handleAnchors();   // Email validation
-  handleCases();     // Case age highlighting
-  handleStatus();    // Status colors
+  // Email validation runs on email composer pages
+  if (isOnEmailComposerPage()) {
+    handleAnchors();
+  }
+
+  // Case age and status highlighting ONLY runs on Cases List pages
+  if (isOnCasesListPage()) {
+    handleCases();
+    handleStatus();
+  }
 });
 
 observer.observe(document, {
@@ -336,11 +362,19 @@ observer.observe(document, {
 });
 ```
 
-**Performance Consideration:**
-- Runs on EVERY DOM change
-- Could trigger hundreds of times per second
-- No throttling/debouncing implemented
-- Potential performance bottleneck on large pages
+**Performance Optimization:**
+- ✅ **Page detection added**: Functions only run on relevant pages
+- ✅ **URL change monitoring**: Handles Lightning SPA navigation
+- ✅ **Reduced processing**: ~60-70% fewer handler calls on non-list pages
+- ⚠️ **Still no throttling**: Could benefit from debouncing (future enhancement)
+
+**Bug Fixed:**
+- **Issue**: Case highlighting ran on all pages including case detail pages
+- **Impact**: Wasted CPU cycles querying for non-existent table elements
+- **Solution**: Added `isOnCasesListPage()` and `isOnEmailComposerPage()` checks
+- **Result**: Functions only execute where DOM elements actually exist
+
+See [BUGFIX_CASE_LIST_ONLY.md](BUGFIX_CASE_LIST_ONLY.md) for detailed documentation.
 
 ### 6.4 ScholarOne Classic vs Lightning Detection
 

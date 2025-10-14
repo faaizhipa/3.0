@@ -362,6 +362,147 @@ const CaseCommentMemory = {
   },
 
   /**
+   * Creates preview modal
+   * @param {Object} entry - History entry
+   * @param {Function} onRestore - Callback for restore action
+   * @returns {HTMLElement}
+   */
+  createPreviewModal(entry, onRestore) {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `;
+
+    const content = document.createElement('div');
+    content.style.cssText = `
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+    `;
+
+    const header = document.createElement('div');
+    header.style.cssText = `
+      padding: 16px 20px;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    `;
+
+    const title = document.createElement('h3');
+    title.textContent = 'Preview Comment';
+    title.style.cssText = `
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+    `;
+
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕';
+    closeBtn.style.cssText = `
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px 8px;
+      color: #666;
+    `;
+    closeBtn.onclick = () => modal.remove();
+
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+
+    const body = document.createElement('div');
+    body.style.cssText = `
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+    `;
+
+    const timestamp = document.createElement('div');
+    timestamp.textContent = `Saved: ${new Date(entry.timestamp).toLocaleString()}`;
+    timestamp.style.cssText = `
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 12px;
+    `;
+
+    const preview = document.createElement('pre');
+    preview.textContent = entry.text;
+    preview.style.cssText = `
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      background: #f5f5f5;
+      padding: 12px;
+      border-radius: 4px;
+      margin: 0;
+    `;
+
+    const stats = document.createElement('div');
+    stats.style.cssText = `
+      margin-top: 12px;
+      font-size: 12px;
+      color: #666;
+    `;
+    const charCount = entry.text.length;
+    const wordCount = entry.text.trim().split(/\s+/).length;
+    stats.textContent = `${charCount} characters • ${wordCount} words`;
+
+    body.appendChild(timestamp);
+    body.appendChild(preview);
+    body.appendChild(stats);
+
+    const footer = document.createElement('div');
+    footer.style.cssText = `
+      padding: 16px 20px;
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    `;
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.className = 'slds-button slds-button_neutral';
+    cancelBtn.onclick = () => modal.remove();
+
+    const restoreBtn = document.createElement('button');
+    restoreBtn.textContent = 'Restore This Comment';
+    restoreBtn.className = 'slds-button slds-button_brand';
+    restoreBtn.onclick = () => {
+      onRestore();
+      modal.remove();
+    };
+
+    footer.appendChild(cancelBtn);
+    footer.appendChild(restoreBtn);
+
+    content.appendChild(header);
+    content.appendChild(body);
+    content.appendChild(footer);
+    modal.appendChild(content);
+
+    return modal;
+  },
+
+  /**
    * Creates restore UI button
    * @param {string} caseId
    * @returns {HTMLElement}
@@ -380,12 +521,16 @@ const CaseCommentMemory = {
     `;
 
     const button = document.createElement('button');
-    button.textContent = 'Restore ▼';
+    button.innerHTML = '💾 Restore (<span class="restore-count">' + history.length + '</span>)';
     button.className = 'slds-button slds-button_neutral';
     button.style.cssText = `
       font-size: 12px;
       padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     `;
+    button.title = `${history.length} saved comment${history.length > 1 ? 's' : ''} available`;
 
     const dropdown = document.createElement('div');
     dropdown.className = 'restore-dropdown';
@@ -395,45 +540,121 @@ const CaseCommentMemory = {
       top: 100%;
       left: 0;
       background: white;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      min-width: 200px;
-      max-height: 300px;
+      border: 1px solid #d0d0d0;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      min-width: 350px;
+      max-height: 400px;
       overflow-y: auto;
       z-index: 1000;
       margin-top: 4px;
     `;
 
+    // Add header
+    const dropdownHeader = document.createElement('div');
+    dropdownHeader.style.cssText = `
+      padding: 10px 12px;
+      border-bottom: 1px solid #e0e0e0;
+      background: #f9f9f9;
+      font-weight: 600;
+      font-size: 12px;
+      color: #333;
+      border-radius: 6px 6px 0 0;
+    `;
+    dropdownHeader.textContent = `Saved Comments (${history.length})`;
+    dropdown.appendChild(dropdownHeader);
+
     // Add history items
     history.forEach((entry, index) => {
       const item = document.createElement('div');
       item.style.cssText = `
-        padding: 8px 12px;
+        padding: 10px 12px;
         cursor: pointer;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.15s;
       `;
 
-      const timestamp = new Date(entry.timestamp).toLocaleString();
-      const preview = entry.text.substring(0, 50) + (entry.text.length > 50 ? '...' : '');
-
-      item.innerHTML = `
-        <div style="font-size: 11px; color: #666;">${timestamp}</div>
-        <div style="font-size: 12px; margin-top: 4px;">${preview}</div>
+      const headerRow = document.createElement('div');
+      headerRow.style.cssText = `
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
       `;
 
-      // Tooltip
-      item.title = entry.text;
+      const timestamp = document.createElement('span');
+      timestamp.textContent = new Date(entry.timestamp).toLocaleString();
+      timestamp.style.cssText = `
+        font-size: 11px;
+        color: #666;
+      `;
+
+      const actions = document.createElement('div');
+      actions.style.cssText = `
+        display: flex;
+        gap: 6px;
+      `;
+
+      const previewBtn = document.createElement('button');
+      previewBtn.textContent = '👁️ Preview';
+      previewBtn.style.cssText = `
+        font-size: 10px;
+        padding: 2px 6px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+      `;
+      previewBtn.onclick = (e) => {
+        e.stopPropagation();
+        const modal = this.createPreviewModal(entry, () => {
+          const textarea = this.getTextarea();
+          if (textarea) {
+            textarea.value = entry.text;
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        });
+        document.body.appendChild(modal);
+        dropdown.style.display = 'none';
+      };
+
+      actions.appendChild(previewBtn);
+      headerRow.appendChild(timestamp);
+      headerRow.appendChild(actions);
+
+      const preview = document.createElement('div');
+      const previewText = entry.text.substring(0, 80) + (entry.text.length > 80 ? '...' : '');
+      preview.textContent = previewText;
+      preview.style.cssText = `
+        font-size: 12px;
+        color: #333;
+        line-height: 1.4;
+      `;
+
+      const stats = document.createElement('div');
+      stats.style.cssText = `
+        font-size: 10px;
+        color: #999;
+        margin-top: 4px;
+      `;
+      const charCount = entry.text.length;
+      stats.textContent = `${charCount} characters`;
+
+      item.appendChild(headerRow);
+      item.appendChild(preview);
+      item.appendChild(stats);
 
       item.addEventListener('mouseenter', () => {
-        item.style.backgroundColor = '#f0f0f0';
+        item.style.backgroundColor = '#f8f9fa';
       });
 
       item.addEventListener('mouseleave', () => {
         item.style.backgroundColor = '';
       });
 
-      item.addEventListener('click', () => {
+      item.addEventListener('click', (e) => {
+        if (e.target === previewBtn) return;
         const textarea = this.getTextarea();
         if (textarea) {
           textarea.value = entry.text;
@@ -477,6 +698,28 @@ const CaseCommentMemory = {
     if (restoreButton) {
       saveButton.parentElement.appendChild(restoreButton);
     }
+  },
+
+  /**
+   * Cleans up the module
+   */
+  cleanup() {
+    // Clear all timers
+    for (const [caseId, entry] of this.activeEntries.entries()) {
+      if (entry.timerId) {
+        clearTimeout(entry.timerId);
+      }
+    }
+
+    for (const timerId of this.saveThrottleTimers.values()) {
+      clearTimeout(timerId);
+    }
+
+    // Clear maps
+    this.activeEntries.clear();
+    this.saveThrottleTimers.clear();
+
+    console.log('[CaseCommentMemory] Cleaned up');
   }
 };
 
