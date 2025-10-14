@@ -517,41 +517,41 @@ async function injectDynamicMenu(caseData) {
     const buttonData = await getButtonData(caseData, buttonStyle);
 
     if (injectionLocations.card) {
-            const cardTarget = document.querySelector('lightning-card[lwc-7eubp5ml88f-host] slot[name="actions"]');
-            if (cardTarget) {
-                buttonData.forEach(btnInfo => {
-                    let element;
-                    if (btnInfo.type === 'button') {
-                        element = createButton(btnInfo);
-                    } else if (btnInfo.type === 'group') {
-                        element = createButtonGroup(btnInfo.label, btnInfo.items);
-                    }
-                    cardTarget.appendChild(element);
-                });
-                displayAnalyticsRefreshTime(caseData, cardTarget);
-            }
+        const cardTarget = document.querySelector('lightning-card[lwc-7eubp5ml88f-host] slot[name="actions"]');
+        if (cardTarget) {
+            buttonData.forEach(btnInfo => {
+                let element;
+                if (btnInfo.type === 'button') {
+                    element = createButton(btnInfo);
+                } else if (btnInfo.type === 'group') {
+                    element = createButtonGroup(btnInfo.label, btnInfo.items);
+                }
+                cardTarget.appendChild(element);
+            });
+            displayAnalyticsRefreshTime(caseData, cardTarget);
         }
+    }
 
-        if (injectionLocations.header) {
-            const headerTarget = document.querySelector('div.secondaryFields slot[name="secondaryFields"]');
-            if (headerTarget) {
-                buttonData.forEach(btnInfo => {
-                    const container = document.createElement('records-highlights-details-item');
-                    container.classList.add('slds-page-header__detail-block');
-                    let element;
-                    if (btnInfo.type === 'button') {
-                        element = createButton(btnInfo);
-                    } else if (btnInfo.type === 'group') {
-                        element = createButtonGroup(btnInfo.label, btnInfo.items);
-                    }
-                    container.appendChild(element);
-                    headerTarget.appendChild(container);
-                });
-                displayAnalyticsRefreshTime(caseData, headerTarget, true);
-            }
+    if (injectionLocations.header) {
+        const headerTarget = document.querySelector('div.secondaryFields slot[name="secondaryFields"]');
+        if (headerTarget) {
+            buttonData.forEach(btnInfo => {
+                const container = document.createElement('records-highlights-details-item');
+                container.classList.add('slds-page-header__detail-block');
+                let element;
+                if (btnInfo.type === 'button') {
+                    element = createButton(btnInfo);
+                } else if (btnInfo.type === 'group') {
+                    element = createButtonGroup(btnInfo.label, btnInfo.items);
+                }
+                container.appendChild(element);
+                headerTarget.appendChild(container);
+            });
+            displayAnalyticsRefreshTime(caseData, headerTarget, true);
         }
-    });
+    }
 }
+
 
 /**
  * Displays the next analytics refresh time.
@@ -639,49 +639,65 @@ async function getButtonData(caseData, buttonStyle) {
     let buttons = [];
 
     // Production Links
-    buttons.push({ type: 'button', label: currentLabels.lv, url: `https://{{server}}.alma.exlibrisgroup.com/esploro/?institution={{Institution Code}}`
-        .replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) });
-    buttons.push({ type: 'button', label: currentLabels.bo, url: `https://{{server}}.alma.exlibrisgroup.com/mng/login?institute={{Institution Code}}&productCode=esploro&debug=true`
-        .replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) });
+    buttons.push({
+        type: 'button', label: currentLabels.lv, url: `https://{{server}}.alma.exlibrisgroup.com/esploro/?institution={{Institution Code}}`
+            .replace('{{server}}', server).replace('{{Institution Code}}', institutionCode)
+    });
+    buttons.push({
+        type: 'button', label: currentLabels.bo, url: `https://{{server}}.alma.exlibrisgroup.com/mng/login?institute={{Institution Code}}&productCode=esploro&debug=true`
+            .replace('{{server}}', server).replace('{{Institution Code}}', institutionCode)
+    });
 
     // Sandbox Links
     if (productServiceName === 'esploro advanced') {
-        buttons.push({ type: 'group', label: 'Sandbox (PSB)', items: [
-            { label: 'PSB LV', url: `https://psb-{{server}}.alma.exlibrisgroup.com/esploro/?institution={{Institution Code}}`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) },
-            { label: 'PSB BO', url: `https://psb-{{server}}.alma.exlibrisgroup.com/mng/login?institute={{Institution Code}}&productCode=esploro&debug=true`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) }
-        ]});
+        buttons.push({
+            type: 'group', label: 'Sandbox (PSB)', items: [
+                { label: 'PSB LV', url: `https://psb-{{server}}.alma.exlibrisgroup.com/esploro/?institution={{Institution Code}}`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) },
+                { label: 'PSB BO', url: `https://psb-{{server}}.alma.exlibrisgroup.com/mng/login?institute={{Institution Code}}&productCode=esploro&debug=true`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) }
+            ]
+        });
     } else if (productServiceName === 'esploro standard') {
-        buttons.push({ type: 'group', label: 'Sandbox (SB)', items: [
-            { label: 'SB LV', url: `https://sb-{{server}}.alma.exlibrisgroup.com/esploro/?institution={{Institution Code}}`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) },
-            { label: 'SB BO', url: `https://sb-{{server}}.alma.exlibrisgroup.com/mng/login?institute={{Institution Code}}&productCode=esploro&debug=true`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) }
-        ]});
+        buttons.push({
+            type: 'group', label: 'Sandbox (SB)', items: [
+                { label: 'SB LV', url: `https://sb-{{server}}.alma.exlibrisgroup.com/esploro/?institution={{Institution Code}}`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) },
+                { label: 'SB BO', url: `https://sb-{{server}}.alma.exlibrisgroup.com/mng/login?institute={{Institution Code}}&productCode=esploro&debug=true`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) }
+            ]
+        });
     }
 
     // SQA Links
-    buttons.push({ type: 'group', label: 'SQA', items: [
-        { label: 'SQA LV', url: `https://sqa-{{server}}.alma.exlibrisgroup.com/esploro/?institution={{Institution Code}}`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) },
-        { label: 'SQA BO', url: `https://sqa-{{server}}.alma.exlibrisgroup.com/mng/login?institute={{Institution Code}}&productCode=esploro&debug=true`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) }
-    ]});
+    buttons.push({
+        type: 'group', label: 'SQA', items: [
+            { label: 'SQA LV', url: `https://sqa-{{server}}.alma.exlibrisgroup.com/esploro/?institution={{Institution Code}}`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) },
+            { label: 'SQA BO', url: `https://sqa-{{server}}.alma.exlibrisgroup.com/mng/login?institute={{Institution Code}}&productCode=esploro&debug=true`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) }
+        ]
+    });
 
     // Kibana & Wiki
-    buttons.push({ type: 'group', label: 'Tools', items: [
-        { label: 'Kibana', url: getKibanaUrl(server) },
-        { label: 'Wiki', url: 'https://wiki.clarivate.io/pages/viewpage.action?spaceKey=ESP&title=Kibana+-+Log+Searching+Tool' }
-    ]});
+    buttons.push({
+        type: 'group', label: 'Tools', items: [
+            { label: 'Kibana', url: getKibanaUrl(server) },
+            { label: 'Wiki', url: 'https://wiki.clarivate.io/pages/viewpage.action?spaceKey=ESP&title=Kibana+-+Log+Searching+Tool' }
+        ]
+    });
 
     // SQL Links
-    buttons.push({ type: 'group', label: 'SQL', items: [
-        { label: 'SQL Wiki', url: 'https://wiki.clarivate.io/spaces/ESP/pages/505330963/SQL+Course' },
-        { label: 'SQL Alma', url: 'https://wiki.clarivate.io/display/ESP/SQL+Knowledgebase' },
-        { label: 'SQL Esploro', url: 'https://wiki.clarivate.io/spaces/ESP/pages/505334550/Esploro+SQL+Queries' }
-    ]});
+    buttons.push({
+        type: 'group', label: 'SQL', items: [
+            { label: 'SQL Wiki', url: 'https://wiki.clarivate.io/spaces/ESP/pages/505330963/SQL+Course' },
+            { label: 'SQL Alma', url: 'https://wiki.clarivate.io/display/ESP/SQL+Knowledgebase' },
+            { label: 'SQL Esploro', url: 'https://wiki.clarivate.io/spaces/ESP/pages/505334550/Esploro+SQL+Queries' }
+        ]
+    });
 
     // System Status
     buttons.push({ type: 'button', label: 'System Status', url: 'https://status.exlibrisgroup.com/system_status' });
 
     // Customer JIRA
-    buttons.push({ type: 'button', label: 'Customer JIRA', url: `https://jira.clarivate.io/issues/?jql=project%20%3D%20URM%20AND%20%22Customer%20Code%22%20~%20{{Ex Libris Account Number}}%20AND%20%22Platform%20Product%22%20%3D%20Esploro%20order%20by%20lastViewed%20DESC`
-        .replace('{{Ex Libris Account Number}}', exLibrisAccountNumber) });
+    buttons.push({
+        type: 'button', label: 'Customer JIRA', url: `https://jira.clarivate.io/issues/?jql=project%20%3D%20URM%20AND%20%22Customer%20Code%22%20~%20{{Ex Libris Account Number}}%20AND%20%22Platform%20Product%22%20%3D%20Esploro%20order%20by%20lastViewed%20DESC`
+            .replace('{{Ex Libris Account Number}}', exLibrisAccountNumber)
+    });
 
     return buttons;
 }
