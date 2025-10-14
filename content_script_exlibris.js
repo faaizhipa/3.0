@@ -175,6 +175,16 @@
         FieldHighlighter.init();
       }
 
+      // Email "From" field validation (Communication tab)
+      // Highlights red for non-Clarivate emails, orange for wrong department
+      if (typeof handleAnchors === 'function') {
+        handleAnchors();
+        console.log('[ExLibris Extension] Email validation applied');
+        
+        // Set up observer to re-validate when communication tab content changes
+        this.observeCommunicationTab();
+      }
+
       // Initialize dynamic menu
       if (typeof URLBuilder !== 'undefined' && 
           typeof DynamicMenu !== 'undefined' &&
@@ -247,17 +257,26 @@
       // Wait for table to load
       await this.waitForCaseListTable();
 
-      // Run the legacy case list highlighter
-      // This is from the original content_script.js
+      // Run legacy case list functions from content_script.js
+      
+      // 1. Case row highlighting based on age (green -> yellow -> orange -> red)
       if (typeof handleCases === 'function') {
         handleCases();
-        console.log('[ExLibris Extension] Case list highlighting applied');
-
-        // Set up observer to re-apply highlighting when table changes
-        this.observeCaseListChanges();
+        console.log('[ExLibris Extension] Case row highlighting applied');
       } else {
         console.warn('[ExLibris Extension] handleCases function not available');
       }
+      
+      // 2. Status badge highlighting (New Email Received, In Progress, etc.)
+      if (typeof handleStatus === 'function') {
+        handleStatus();
+        console.log('[ExLibris Extension] Status badge highlighting applied');
+      } else {
+        console.warn('[ExLibris Extension] handleStatus function not available');
+      }
+
+      // Set up observer to re-apply all highlighting when table changes
+      this.observeCaseListChanges();
     },
 
     /**
@@ -291,8 +310,12 @@
       }
 
       this.caseListObserver = new MutationObserver(() => {
+        // Re-apply highlighting functions when table changes (sorting, filtering, pagination)
         if (typeof handleCases === 'function') {
           handleCases();
+        }
+        if (typeof handleStatus === 'function') {
+          handleStatus();
         }
       });
 
@@ -301,7 +324,34 @@
         subtree: true
       });
 
-      console.log('[ExLibris Extension] Case list observer initialized');
+      console.log('[ExLibris Extension] Case list observer initialized (handleCases, handleStatus)');
+    },
+
+    /**
+     * Observes Communication tab for changes and re-validates email "From" field
+     */
+    observeCommunicationTab() {
+      // Watch for changes in the communication/email area
+      const emailContainer = document.querySelector('.standardField.uiMenu') || document.body;
+      
+      // Disconnect existing observer if any
+      if (this.communicationObserver) {
+        this.communicationObserver.disconnect();
+      }
+
+      this.communicationObserver = new MutationObserver(() => {
+        // Re-validate email "From" field when content changes
+        if (typeof handleAnchors === 'function') {
+          handleAnchors();
+        }
+      });
+
+      this.communicationObserver.observe(emailContainer, {
+        childList: true,
+        subtree: true
+      });
+
+      console.log('[ExLibris Extension] Communication tab observer initialized (handleAnchors)');
     },
 
     /**
@@ -418,6 +468,12 @@
       if (this.caseListObserver) {
         this.caseListObserver.disconnect();
         this.caseListObserver = null;
+      }
+
+      // Disconnect communication tab observer
+      if (this.communicationObserver) {
+        this.communicationObserver.disconnect();
+        this.communicationObserver = null;
       }
 
       // Remove highlights
