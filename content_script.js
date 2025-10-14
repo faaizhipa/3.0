@@ -1268,39 +1268,3 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         handlePageChanges(request.pageType);
     }
 });
-        buttonData.forEach(btnInfo => {
-            let element;
-            if (btnInfo.type === 'button') {
-                element = createButton(btnInfo);
-            } else if (btnInfo.type === 'group') {
-                element = createButtonGroup(btnInfo.label, btnInfo.items);
-            }
-            cardTarget.appendChild(element);
-        });
-    }
-
-    if (headerTarget) {
-        buttonData.forEach(btnInfo => {
-            const container = document.createElement('records-highlights-details-item');
-            container.classList.add('slds-page-header__detail-block');
-            let element;
-            if (btnInfo.type === 'button') {
-                element = createButton(btnInfo);
-            } else if (btnInfo.type === 'group') {
-                element = createButtonGroup(btnInfo.label, btnInfo.items);
-            }
-            container.appendChild(element);
-            headerTarget.appendChild(container);
-        });
-    }
-}
-
-
-// --- Event Listeners ---
-
-// Listen for messages from the background script
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.message === 'pageTypeIdentified') {
-        handlePageChanges(request.pageType);
-    }
-});
