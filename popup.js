@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Set up the click event listener for the save button
         document.getElementById('saveButton').addEventListener('click', save);
+        document.getElementById('forceRefreshButton').addEventListener('click', forceRefresh);
     } else {
         const container = document.getElementsByClassName("container")[0];
 
@@ -32,11 +33,19 @@ function save() {
     const selectedValue = document.getElementById('selectionDropdown').value;
     saveSelection(selectedValue);
     alert(`Please refresh CForce (Salesforce Website). Thanks 😊`);
-  }
-  
-  // Function to save the selection to chrome.storage
-  function saveSelection(selectedValue) {
+}
+
+// Function to save the selection to chrome.storage
+function saveSelection(selectedValue) {
     chrome.storage.sync.set({ 'savedSelection': selectedValue }, function() {
-      console.log('Selection saved: ' + selectedValue);
+        console.log('Selection saved: ' + selectedValue);
     });
-  }
+}
+
+async function forceRefresh() {
+    const activeTab = await getActiveTabURL();
+    const cacheKey = `case-data-${activeTab.url}`;
+    chrome.runtime.sendMessage({ message: 'clearCache', key: cacheKey }, function() {
+        alert('Cache cleared. Please refresh the page.');
+    });
+}

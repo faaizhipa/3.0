@@ -713,263 +713,215 @@ function hasOpenButNotReopened(rowElement) {
 }
 
 // Main function to check and handle anchor elements
-function handleCases() {
-  let webTables = document.querySelectorAll('table');
+function handleCases(pageData) {
+    let webTables = document.querySelectorAll('table');
+    let rowIndex = 0;
+    for (let table of webTables) {
+        const rows = table.querySelector('tbody').querySelectorAll('tr');
+        for (let row of rows) {
+            const rowData = pageData[rowIndex];
+            if (rowData && hasOpenButNotReopened(row)) {
+                const dateArray = rowData.dates.map(dateStr => {
+                    if (isValidDateFormat(dateStr)) {
+                        return convertDateFormat(dateStr);
+                    } else if (isValidDateFormat2(dateStr)) {
+                        return convertDateFormat2(dateStr);
+                    } else if (isValidDateFormatDDMMnoAMPM(dateStr)) {
+                        const addAMPM = convertDateFormatDDMMwithAMPM(dateStr);
+                        return convertDateFormat(addAMPM);
+                    } else if (isValidDateFormatMMDDnoAMPM(dateStr)) {
+                        const addAMPM = convertDateFormatMMDDwithAMPM(dateStr);
+                        return convertDateFormat(addAMPM);
+                    }
+                });
 
-  for (let table of webTables) {
-    const rows = table.querySelector('tbody').querySelectorAll('tr');
-    for (let row of rows) {
-      // check if the row has the term "Open" but not "Re-opened"
-      if (hasOpenButNotReopened(row)) {
-        const dateArray = [];
-        const dateElements = row.querySelectorAll("td span span");
+                let earlierDate;
+                if (dateArray.length === 2) {
+                    earlierDate = getEarlierDate(dateArray[0], dateArray[1]);
+                } else if (dateArray.length === 1) {
+                    earlierDate = new Date(dateArray[0]);
+                }
 
-        // check if there's any textContent with the correct format, and push it to dateArray if it is
-        dateElements.forEach(element => {
-          const textContent = element.textContent;
-
-          if (isValidDateFormat(textContent)) {
-            // if the date format is MM/DD/YYYY, push it to dateArray
-            const convertedDate = convertDateFormat(textContent);
-            dateArray.push(convertedDate);
-            //console.log('isValidDateFormat ONE has run')
-          } else if (isValidDateFormat2(textContent)) {
-            // if the date format is DD/MM/YYYY, convert it to MM/DD/YYYY and push it to dateArray
-            const convertedDate = convertDateFormat2(textContent);
-            dateArray.push(convertedDate);
-            //console.log('isValidDateFormat2 TWO has run')
-          } else if (isValidDateFormatDDMMnoAMPM(textContent)) {
-            const addAMPM = convertDateFormatDDMMwithAMPM(textContent);
-            // console.log(addAMPM);
-            const convertedDate = convertDateFormat(addAMPM);
-            dateArray.push(convertedDate);
-          } else if (isValidDateFormatMMDDnoAMPM(textContent)) {
-            const addAMPM = convertDateFormatMMDDwithAMPM(textContent);
-            // console.log(addAMPM);
-            const convertedDate = convertDateFormat(addAMPM);
-            dateArray.push(convertedDate);
-          }
-        });
-
-        //check if the number of items in dateArray is 2 or 1, and assign earlierDate accordingly
-        let earlierDate;
-        //console.log(dateArray);
-
-        if (dateArray.length === 2) {
-          earlierDate = getEarlierDate(dateArray[0], dateArray[1]);
-        } else if (dateArray.length === 1) {
-          earlierDate = new Date(dateArray[0]);
+                if (earlierDate) {
+                    const caseMinutes = calculateTimeDifferenceInMinutes(earlierDate);
+                    if (caseMinutes > 90) {
+                        highlightAnchorWithSpecificContent(row, "rgb(255, 220, 230)");
+                    } else if (caseMinutes <= 90 && caseMinutes > 60) {
+                        highlightAnchorWithSpecificContent(row, "rgb(255, 232, 184)");
+                    } else if (caseMinutes <= 60 && caseMinutes > 30) {
+                        highlightAnchorWithSpecificContent(row, "rgb(209, 247, 196)");
+                    } else if (caseMinutes <= 30) {
+                        highlightAnchorWithSpecificContent(row, "rgb(194, 244, 233)");
+                    }
+                }
+            } else {
+                unhighlightAnchor(row);
+            }
+            rowIndex++;
         }
-
-        // calculate the time difference in minutes
-        const caseMinutes = calculateTimeDifferenceInMinutes(earlierDate);
-
-        // highlight the row with different colors based on the time difference
-        if (caseMinutes > 90) {
-          highlightAnchorWithSpecificContent(row, "rgb(255, 220, 230)")
-        } else if (caseMinutes <= 90 && caseMinutes > 60) {
-          highlightAnchorWithSpecificContent(row, "rgb(255, 232, 184)")
-        } else if (caseMinutes <= 60 && caseMinutes > 30) {
-          highlightAnchorWithSpecificContent(row, "rgb(209, 247, 196)")
-        } else if (caseMinutes <= 30) {
-          highlightAnchorWithSpecificContent(row, "rgb(194, 244, 233)")
-        }
-      } else {
-        unhighlightAnchor(row);
-      }
     }
-  }
 }
-
 
 // --- CASE STATUS HIGHLIGHTER ---
-
-// > ScholarOne SFDC
-
-/*
-
-<span style="background-color: ${color}!!!; border-radius: 6px; padding: 3px 6px; color: white; font-weight: 500;">Assigned</span>
-
-*/
-
-/*
-// find all elements containing CASES_STATUS ids
-
-function findElementsWithIdContainingText() {
-  // Get all elements in the document
-  var allElements = document.getElementsByTagName("*");
-
-  // Initialize an array to hold the matching elements
-  var matchingElements = [];
-
-  // Loop through all elements
-  for (var i = 0; i < allElements.length; i++) {
-      // If the id of the current element contains "CASES_STATUS"
-      if (allElements[i].id.includes("CASES_STATUS")) {
-          // Add the current element to the array of matching elements
-          matchingElements.push(allElements[i]);
-      }
-  }
-
-  // Return the array of matching elements
-  return matchingElements;
-}
-*/
-
-// return the right colour for ScholarOne statuses
-
-function casePageCheck() {
-  var titleElement = document.querySelector("head > title");
-  if (titleElement && titleElement.textContent === "Cases - Console") {
-    console.log("cases true");
-    return true;
-
-  } else {
-    return false;
-  }
-}
-
-function scholarOneStatusColors(statusText) {
-  if (statusText === "New" || statusText === "Assigned" || statusText === "Failed QA") {
-    return "rgb(191, 39, 75)";
-  } else if (statusText === "Waiting" || statusText === "Updated") {
-    return "rgb(247, 114, 56)";
-  } else if (statusText === "Escalated" || statusText === "On Hold" || statusText === "Pending Approval" || statusText === "Pending QA Review") {
-    return "rgb(140, 77, 253)";
-  } else if (statusText === "Released" || statusText === "Passed QA" || statusText === "Closed") {
-    return "rgb(45, 200, 64)";
-  } else if (statusText === "Ready for QA" || statusText === "Ready for DBA" || statusText === "Ready for Data Architect") {
-    return "rgb(251, 178, 22)";
-  }
-}
-
-// find all elements containing CASES_STATUS ids and convert the div element
-
-function divElementChangerScholarOne() {
-  // Get all div elements in the document
-  var divElements = document.getElementsByTagName("div");
-
-  // Loop through all div elements
-  for (var i = 0; i < divElements.length; i++) {
-    // If the id of the current div element contains "CASES_STATUS"
-
-    if (divElements[i].id.includes("CASES_STATUS")) {
-      // Create a new span element
-      console.log(i);
-      var span = document.createElement("span");
-      console.log(divElements[i].textContent.trim());
-
-
-      // Set the style of the span element
-      span.style.backgroundColor = scholarOneStatusColors(divElements[i].textContent.trim());
-      span.style.borderRadius = "6px";
-      span.style.padding = "3px 6px";
-      span.style.color = "white";
-      span.style.fontWeight = "500";
-
-      // Set the text of the span element to the current text of the div element
-      span.textContent = divElements[i].textContent.trim();
-
-      // Clear the current content of the div element
-      divElements[i].textContent = "";
-
-      // Append the span element to the div element
-      divElements[i].appendChild(span);
+function handleStatus(pageData) {
+    if (casePageCheck()) {
+        scholarOneHandleStatus();
+    } else {
+        let webTables = document.querySelectorAll('table');
+        let rowIndex = 0;
+        for (let table of webTables) {
+            const rows = table.querySelector('tbody').querySelectorAll('tr');
+            for (let row of rows) {
+                const rowData = pageData[rowIndex];
+                if (rowData && rowData.status) {
+                    let cells = row.querySelectorAll('td span span');
+                    for (let cell of cells) {
+                        if (cell.textContent.trim() === rowData.status) {
+                            const style = getStatusStyle(rowData.status);
+                            if (style) {
+                                cell.setAttribute("style", style);
+                            } else {
+                                cell.removeAttribute("style");
+                            }
+                            break;
+                        }
+                    }
+                }
+                rowIndex++;
+            }
+        }
     }
-  }
+}
+
+function getStatusStyle(statusText) {
+    if (statusText === "New Email Received" || statusText === "Re-opened" || statusText === "Reopened" || statusText === "Completed by Resolver Group" || statusText === "New" || statusText === "Update Received") {
+        return generateStyle("rgb(191, 39, 75)");
+    } else if (statusText === "Pending Action" || statusText === "Initial Response Sent" || statusText === "In Progress") {
+        return generateStyle("rgb(247, 114, 56)");
+    } else if (statusText === "Assigned to Resolver Group" || statusText === "Pending Internal Response" || statusText === "Pending AM Response" || statusText === "Pending QA Review") {
+        return generateStyle("rgb(140, 77, 253)");
+    } else if (statusText === "Solution Delivered to Customer") {
+        return generateStyle("rgb(45, 200, 64)");
+    } else if (statusText === "Closed" || statusText === "Pending Customer Response") {
+        return generateStyle("rgb(103, 103, 103)");
+    } else if (statusText === "Pending System Update - Defect" || statusText === "Pending System Update - Enhancement" || statusText === "Pending System Update - Other") {
+        return generateStyle("rgb(251, 178, 22)");
+    }
+    return null;
 }
 
 function scholarOneHandleStatus() {
-  if (casePageCheck()) {
-
-    console.log("main function started");
-
-    // runs the backgroundcolourchange for ScholarOne SFDC once initially.
     divElementChangerScholarOne();
-
-    document.querySelector("form").addEventListener('change', function () {
-
-      console.log('The TABLE ELEMENT has changed.');
-
-      divElementChangerScholarOne();
-
-
-
-    });
-
-    setTimeout(function () {
-      // Your function goes here
-      divElementChangerScholarOne();
-      console.log("This function runs after 1 second");
-    }, 1000);
-
-    console.log("main function finished");
-  }
+    document.querySelector("form").addEventListener('change', divElementChangerScholarOne);
+    setTimeout(divElementChangerScholarOne, 1000);
 }
 
-
-// > Lightning SFDC
-
-// --- Generate the style declaration for the handleStatus function ---
-function generateStyle(color) {
-  return `background-color: ${color}; border-radius: 6px; padding: 3px 6px; color: white; font-weight: 500;`;
+function casePageCheck() {
+    var titleElement = document.querySelector("head > title");
+    return titleElement && titleElement.textContent === "Cases - Console";
 }
 
-// Main function to check and highlight status elements
-function handleStatus() {
-  let webTables = document.querySelectorAll('table');
-
-  for (let table of webTables) {
-    const rows = table.querySelector('tbody').querySelectorAll('tr');
-    for (let row of rows) {
-      let cells = row.querySelectorAll('td span span');
-      for (let cell of cells) {
-        let cellText = cell.textContent.trim();
-        if (cellText === "New Email Received" || cellText === "Re-opened" || cellText === "Reopened" || cellText === "Completed by Resolver Group" || cellText === "New" || cellText === "Update Received") {
-          cell.setAttribute("style", generateStyle("rgb(191, 39, 75)"));
-        } else if (cellText === "Pending Action" || cellText === "Initial Response Sent" || cellText === "In Progress") {
-          cell.setAttribute("style", generateStyle("rgb(247, 114, 56)"));
-        } else if (cellText === "Assigned to Resolver Group" || cellText === "Pending Internal Response" || cellText === "Pending AM Response" || cellText === "Pending QA Review") {
-          cell.setAttribute("style", generateStyle("rgb(140, 77, 253)"));
-        } else if (cellText === "Solution Delivered to Customer") {
-          cell.setAttribute("style", generateStyle("rgb(45, 200, 64)"));
-        } else if (cellText === "Closed" || cellText === "Pending Customer Response") {
-          cell.setAttribute("style", generateStyle("rgb(103, 103, 103)"));
-        } else if (cellText === "Pending System Update - Defect" || cellText === "Pending System Update - Enhancement" || cellText === "Pending System Update - Other") {
-          cell.setAttribute("style", generateStyle("rgb(251, 178, 22)"));
-        } else {
-          cell.removeAttribute("style");
-        }
-      }
+function scholarOneStatusColors(statusText) {
+    if (statusText === "New" || statusText === "Assigned" || statusText === "Failed QA") {
+        return "rgb(191, 39, 75)";
+    } else if (statusText === "Waiting" || statusText === "Updated") {
+        return "rgb(247, 114, 56)";
+    } else if (statusText === "Escalated" || statusText === "On Hold" || statusText === "Pending Approval" || statusText === "Pending QA Review") {
+        return "rgb(140, 77, 253)";
+    } else if (statusText === "Released" || statusText === "Passed QA" || statusText === "Closed") {
+        return "rgb(45, 200, 64)";
+    } else if (statusText === "Ready for QA" || statusText === "Ready for DBA" || statusText === "Ready for Data Architect") {
+        return "rgb(251, 178, 22)";
     }
-  }
-
 }
 
-// EVENT LISTENERS FOR EXECUTING FUNCTIONS
+function divElementChangerScholarOne() {
+    var divElements = document.getElementsByTagName("div");
+    for (var i = 0; i < divElements.length; i++) {
+        if (divElements[i].id.includes("CASES_STATUS")) {
+            var span = document.createElement("span");
+            span.style.backgroundColor = scholarOneStatusColors(divElements[i].textContent.trim());
+            span.style.borderRadius = "6px";
+            span.style.padding = "3px 6px";
+            span.style.color = "white";
+            span.style.fontWeight = "500";
+            span.textContent = divElements[i].textContent.trim();
+            divElements[i].textContent = "";
+            divElements[i].appendChild(span);
+        }
+    }
+}
 
-// Observe the document for mutations (changes in the DOM)
-const observer = new MutationObserver(() => {
-  handleAnchors();
-  handleCases();
-  handleStatus();
-});
+function generateStyle(color) {
+    return `background-color: ${color}; border-radius: 6px; padding: 3px 6px; color: white; font-weight: 500;`;
+}
 
-// Call functions initially - because they use event listener appended to the element instead
+// --- CACHING ---
+function getCacheKey() {
+    return `case-data-${window.location.href}`;
+}
 
-// > ScholarOne Mutation Observer
-// runs everytime the "option" element changes "selection"
+function extractPageData() {
+    let caseData = [];
+    let webTables = document.querySelectorAll('table');
 
-/* // Call functions initially
-handleAnchors();
-handleCases();
-handleStatus(); */
+    for (let table of webTables) {
+        const rows = table.querySelector('tbody').querySelectorAll('tr');
+        for (let row of rows) {
+            let rowData = {
+                status: null,
+                dates: [],
+            };
+            let cells = row.querySelectorAll('td span span');
+            for (let cell of cells) {
+                let cellText = cell.textContent.trim();
+                if (getStatusStyle(cellText)) {
+                    rowData.status = cellText;
+                    break;
+                }
+            }
 
-// Observe the document for mutations (changes in the DOM)
-observer.observe(document, {
-  childList: true,
-  subtree: true,
-});
+            const dateElements = row.querySelectorAll("td span span");
+            dateElements.forEach(element => {
+                const textContent = element.textContent;
+                if (isValidDateFormat(textContent) || isValidDateFormat2(textContent) || isValidDateFormatDDMMnoAMPM(textContent) || isValidDateFormatMMDDnoAMPM(textContent)) {
+                    rowData.dates.push(textContent);
+                }
+            });
+            caseData.push(rowData);
+        }
+    }
+    return caseData;
+}
+
+// --- FULL PAGE LOAD ---
+function scrollToBottom() {
+    window.scrollTo(0, document.body.scrollHeight);
+    setTimeout(initializeWhenReady, 500);
+}
+
+function initializeWhenReady() {
+    const cacheKey = getCacheKey();
+    chrome.runtime.sendMessage({ message: 'getCache', key: cacheKey }, function(response) {
+        if (response.status && response.data) {
+            const pageData = response.data.data;
+            applyHighlights(pageData);
+        } else {
+            const pageData = extractPageData();
+            chrome.runtime.sendMessage({ message: 'setCache', key: cacheKey, data: pageData });
+            applyHighlights(pageData);
+        }
+    });
+}
+
+function applyHighlights(pageData) {
+    handleAnchors();
+    handleCases(pageData);
+    handleStatus(pageData);
+}
+
+// Start the process
+scrollToBottom();
 
 
 
