@@ -472,18 +472,78 @@ function displayAnalyticsRefreshTime(caseData, targetElement, isHeader = false) 
  * @param {string} buttonStyle - The naming convention for the buttons.
  * @returns {Array<object>} An array of button/group data objects.
  */
+function getKibanaUrl(server) {
+    const kibanaMap = {
+        'NA04': 'http://lm-oss-kib.dc01.hosted.exlibrisgroup.com:5601/', 'NA05': 'http://lm-oss-kib.dc01.hosted.exlibrisgroup.com:5601/', 'NA06': 'http://lm-oss-kib.dc01.hosted.exlibrisgroup.com:5601/', 'NA07': 'http://lm-oss-kib.dc01.hosted.exlibrisgroup.com:5601/', 'NA08': 'http://lm-oss-kib.dc01.hosted.exlibrisgroup.com:5601/',
+        'EU00': 'http://lm-oss-kib.dc03.hosted.exlibrisgroup.com:5601/', 'EU01': 'http://lm-oss-kib.dc03.hosted.exlibrisgroup.com:5601/', 'EU02': 'http://lm-oss-kib.dc03.hosted.exlibrisgroup.com:5601/',
+        'NA01': 'http://lm-oss-kib.dc04.hosted.exlibrisgroup.com:5601/', 'NA02': 'http://lm-oss-kib.dc04.hosted.exlibrisgroup.com:5601/', 'NA03': 'http://lm-oss-kib.dc04.hosted.exlibrisgroup.com:5601/', 'NA91': 'http://lm-oss-kib.dc04.hosted.exlibrisgroup.com:5601/',
+        'AP01': 'http://lm-oss-kib.dc05.hosted.exlibrisgroup.com:5601/',
+        'EU03': 'http://lm-oss-kib.dc06.hosted.exlibrisgroup.com:5601/', 'EU04': 'http://lm-oss-kib.dc06.hosted.exlibrisgroup.com:5601/', 'EU05': 'http://lm-oss-kib.dc06.hosted.exlibrisgroup.com:5601/', 'EU06': 'http://lm-oss-kib.dc06.hosted.exlibrisgroup.com:5601/',
+        'AP02': 'http://lm-oss-kib.dc07.hosted.exlibrisgroup.com:5601/',
+        'CA01': 'http://lm-oss-kib.dc82.hosted.exlibrisgroup.com:5601/',
+        'CN01': 'http://lm-oss-kib.dc81.hosted.exlibrisgroup.com:5601/login?next=%2F'
+    };
+    return kibanaMap[server.substring(0, 4)] || 'https://wiki.clarivate.io/pages/viewpage.action?spaceKey=ESP&title=Kibana+-+Log+Searching+Tool';
+}
+
 function getButtonData(caseData, buttonStyle) {
-    // This is a simplified set of URLs for demonstration.
-    // The full logic will be more complex based on the requirements.
-    const buttonData = [
-        { type: 'button', label: 'LV', url: `https://le-giong-test.com/esploro/?institution=${caseData.institutionCode}` },
-        { type: 'button', label: 'BO', url: `https://le-giong-test.com/mng/login?institute=${caseData.institutionCode}` },
-        { type: 'group', label: 'SQL', items: [
-            { label: 'SQL Wiki', url: 'https://wiki.clarivate.io/spaces/ESP/pages/505330963/SQL+Course' },
-            { label: 'SQL Alma', url: 'https://wiki.clarivate.io/display/ESP/SQL+Knowledgebase' }
-        ]}
-    ];
-    return buttonData;
+    const { server, institutionCode, productServiceName, exLibrisAccountNumber } = caseData;
+
+    const labels = {
+        Formal: { lv: 'Portal', bo: 'Repository', erp: 'Researchers Profile' },
+        Casual: { lv: 'Live View', bo: 'Back Office', erp: 'Profiles' },
+        Abbreviated: { lv: 'LV', bo: 'BO', erp: 'ERP' }
+    };
+    const currentLabels = labels[buttonStyle] || labels.Abbreviated;
+
+    let buttons = [];
+
+    // Production Links
+    buttons.push({ type: 'button', label: currentLabels.lv, url: `https://{{server}}.alma.exlibrisgroup.com/esploro/?institution={{Institution Code}}`
+        .replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) });
+    buttons.push({ type: 'button', label: currentLabels.bo, url: `https://{{server}}.alma.exlibrisgroup.com/mng/login?institute={{Institution Code}}&productCode=esploro&debug=true`
+        .replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) });
+
+    // Sandbox Links
+    if (productServiceName === 'esploro advanced') {
+        buttons.push({ type: 'group', label: 'Sandbox (PSB)', items: [
+            { label: 'PSB LV', url: `https://psb-{{server}}.alma.exlibrisgroup.com/esploro/?institution={{Institution Code}}`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) },
+            { label: 'PSB BO', url: `https://psb-{{server}}.alma.exlibrisgroup.com/mng/login?institute={{Institution Code}}&productCode=esploro&debug=true`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) }
+        ]});
+    } else if (productServiceName === 'esploro standard') {
+        buttons.push({ type: 'group', label: 'Sandbox (SB)', items: [
+            { label: 'SB LV', url: `https://sb-{{server}}.alma.exlibrisgroup.com/esploro/?institution={{Institution Code}}`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) },
+            { label: 'SB BO', url: `https://sb-{{server}}.alma.exlibrisgroup.com/mng/login?institute={{Institution Code}}&productCode=esploro&debug=true`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) }
+        ]});
+    }
+
+    // SQA Links
+    buttons.push({ type: 'group', label: 'SQA', items: [
+        { label: 'SQA LV', url: `https://sqa-{{server}}.alma.exlibrisgroup.com/esploro/?institution={{Institution Code}}`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) },
+        { label: 'SQA BO', url: `https://sqa-{{server}}.alma.exlibrisgroup.com/mng/login?institute={{Institution Code}}&productCode=esploro&debug=true`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) }
+    ]});
+
+    // Kibana & Wiki
+    buttons.push({ type: 'group', label: 'Tools', items: [
+        { label: 'Kibana', url: getKibanaUrl(server) },
+        { label: 'Wiki', url: 'https://wiki.clarivate.io/pages/viewpage.action?spaceKey=ESP&title=Kibana+-+Log+Searching+Tool' }
+    ]});
+
+    // SQL Links
+    buttons.push({ type: 'group', label: 'SQL', items: [
+        { label: 'SQL Wiki', url: 'https://wiki.clarivate.io/spaces/ESP/pages/505330963/SQL+Course' },
+        { label: 'SQL Alma', url: 'https://wiki.clarivate.io/display/ESP/SQL+Knowledgebase' },
+        { label: 'SQL Esploro', url: 'https://wiki.clarivate.io/spaces/ESP/pages/505334550/Esploro+SQL+Queries' }
+    ]});
+
+    // System Status
+    buttons.push({ type: 'button', label: 'System Status', url: 'https://status.exlibrisgroup.com/system_status' });
+
+    // Customer JIRA
+    buttons.push({ type: 'button', label: 'Customer JIRA', url: `https://jira.clarivate.io/issues/?jql=project%20%3D%20URM%20AND%20%22Customer%20Code%22%20~%20{{Ex Libris Account Number}}%20AND%20%22Platform%20Product%22%20%3D%20Esploro%20order%20by%20lastViewed%20DESC`
+        .replace('{{Ex Libris Account Number}}', exLibrisAccountNumber) });
+
+    return buttons;
 }
 
 
