@@ -1,122 +1,114 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Penang CoE CForce Extension Popup</title>
+  <title>Salesforce Power-Up Extension</title>
   <meta charset="UTF-8">
-
   <style>
-    * {
-      font-family: Arial, sans-serif;
-      color: white;
-    }
-
-    h1 {
-      font-size: 14pt;
-    }
-
-    h2 {
-      font-size: 12pt;
-    }
-
-    p {
-      font-size: 12pt;
-    }
-    span {
-      background-color: rgba(23, 22, 22, 0.76);
-      padding: 0 6px;
-    }
-    html {
-      width: 300px; /* max: 1000px */
-      height: 300px; /* max: 750px */
-    }
-
     body {
-      background: url(img/popUp_bg.jpg) no-repeat center center fixed; 
-      -webkit-background-size: cover;
-      -moz-background-size: cover;
-      -o-background-size: cover;
-      background-size: cover;
-      background-color: grey;
-      background-blend-mode: multiply;
-      padding: 15%;
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      color: #1c1e21;
+      padding: 15px;
+      width: 350px;
     }
-
+    h1 {
+      font-size: 18px;
+      color: #0176d3;
+      border-bottom: 2px solid #0176d3;
+      padding-bottom: 5px;
+    }
+    h2 {
+      font-size: 16px;
+      margin-top: 20px;
+      border-bottom: 1px solid #dce0e5;
+      padding-bottom: 5px;
+    }
+    .setting-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    select, button {
+      width: 100%;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #dce0e5;
+    }
+    button {
+      background-color: #0176d3;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .checkbox-group label {
+      font-weight: normal;
+      display: inline-block;
+      margin-right: 15px;
+    }
     .notInSFDC {
-      background-color: rgb(191, 39, 75); 
-      border-radius: 6px; 
-      padding: 8px 8px; 
-      color: white; 
-      font-weight: 500;
-      font-size: 1rem;
+      background-color: #c23934;
+      color: white;
+      padding: 10px;
+      border-radius: 4px;
+      font-weight: bold;
     }
-
-    #selectionDropdown {
-      color:black;
-    }
-
-    #selectionDropdown > option {
-      background-color: white;
-      color: black;
-    }
-
-    #saveButton {
-      background-color: white;
-      color: black;
-    }
-
-    .descriptionTitle {
-      border-top: solid white;
-      padding-top: 1rem;
-    }
-
   </style>
 </head>
 <body>
-  <h1>Penang CoE CForce Extension</h1>
+  <h1>Salesforce Power-Up Settings</h1>
 
   <div class="container">
-    <div class="selection">
-      <div>
-        <h2 class="descriptionTitle">👔 Team or BU Setting</h2>
-        <p>For "from" email to be highlighted properly</p>
-        <select id="selectionDropdown">
-          <option value="EndNote">EndNote</option>
-          <option value="WebOfScience">Web of Science</option>
-          <option value="LifeScience">Life Science</option>
-          <option value="LifeScienceHDS">Life Science (HDS)</option>
-          <option value="LifeSciencePS">Life Science (Product Specialist)</option>
-          <option value="AccountSupport">Account Support</option>
+    <div id="settings-view">
+      <h2>Dynamic Menu</h2>
+      <div class="setting-group">
+        <label>Injection Location</label>
+        <div class="checkbox-group">
+          <input type="checkbox" id="inject-card" name="injectionLocation" value="card">
+          <label for="inject-card">Card Actions</label>
+          <input type="checkbox" id="inject-header" name="injectionLocation" value="header">
+          <label for="inject-header">Header Details</label>
+        </div>
+      </div>
+      <div class="setting-group">
+        <label for="button-style">Button Naming Convention</label>
+        <select id="button-style">
+          <option value="Formal">Formal (e.g., Portal)</option>
+          <option value="Casual">Casual (e.g., Live View)</option>
+          <option value="Abbreviated">Abbreviated (e.g., LV)</option>
         </select>
-        
-        <button id="saveButton">Save</button>
       </div>
 
-      <div>
-        <h2 class="descriptionTitle">🎨 Status Colour Setting</h2>
-        <p>Feature coming soon</p>
+      <h2>Timezone</h2>
+      <div class="setting-group">
+        <label for="timezone">Your Local Timezone</label>
+        <select id="timezone">
+          <!-- Timezones will be populated by popup.js -->
+          <option value="auto">Auto-detect</option>
+        </select>
       </div>
 
-      <div>
-        <h2 class="descriptionTitle">How to ensure that the plugin works?</h2>
-        <p><span>1️⃣ Show the "Status" & "Date/Time Opened" Column in your Case List View</span></p>
-        <p><span>2️⃣ Select your team above, and click "Save"</span></p>
-      </div>
+      <button id="saveButton">Save Settings</button>
 
+      <h2>Data Management</h2>
+      <div class="setting-group">
+        <button id="update-customer-list">Update Customer List from Wiki</button>
+        <div class="checkbox-group" style="margin-top: 10px;">
+          <input type="checkbox" id="use-scraped-list" name="useScrapedList">
+          <label for="use-scraped-list">Use updated list</label>
+        </div>
+      </div>
+    </div>
+    <div id="notice-view" style="display: none;">
+      <div class="notInSFDC">
+        Settings can only be configured on a Salesforce page.
+      </div>
     </div>
   </div>
 
-  <h2 class="descriptionTitle">What does this extension do?</h2>
-  <p><span>1️⃣ Highlight new Open cases in SFDC, where each 30 minute lapsed will highlight the row from green to red (<a href="https://clarivate-my.sharepoint.com/:i:/p/muhammadamirfaaiz_shamsolnizam/Edhep5VIW5RKqowAFcgjjgIBAJDslr3jibDGLqLDv9VKwQ?e=3Hq03P" target="_blank">Preview</a>)</span></p>
-  <p><span>2️⃣ When sending emails to customer in SFDC, the "From" field will be coloured if it's not using the right email (<a href="https://clarivate-my.sharepoint.com/:i:/p/muhammadamirfaaiz_shamsolnizam/Ed1MyExuvABFuJSVoa75t2wB8Grkiv3_fc2mTDifD1zjFA?e=GR6hZ3" target="_blank">Preview</a>)</span></p>
-  <p><span>3️⃣ The case statuses are highlighted according to the attention it requires (<a href="https://clarivate-my.sharepoint.com/:i:/p/muhammadamirfaaiz_shamsolnizam/EUPb9zxAUARJjfOeztlVJ2UBA1g7sRBdEEcl-Hk-1QCL7w?e=6vdDIt" target="_blank">Preview</a>)</span></p>
-
-  <p><span>💡 Any feedback or suggestion can let me know via Teams (<a href="https://teams.microsoft.com/l/chat/0/0?users=muhammadamirfaaiz.shamsolnizam@clarivate.com" target="_blank">Click to message</a>)</span></p>
-
-  <p><span>📔 You can also contribute to the extension's future improvements by adding ideas to <a href="https://clarivate-my.sharepoint.com/:wb:/p/muhammadamirfaaiz_shamsolnizam/EUUQcgicX8tEgeoCkKgr4pIBRm18G1kT5c8BaTRaj1PPgA?e=gjtaFo" target="_blank">our moodboard</a></span></p>
+  <script src="popup.js"></script>
 </body>
-
-<script src="content_script.js"></script>
-<script type="module" src="popup.js"></script>
-
 </html>
-
