@@ -14,7 +14,12 @@
    "content_scripts": [
       {
          "js": [ "content_script.js" ],
-         "matches": [ "https://clarivateanalytics.lightning.force.com/*", "https://clarivateanalytics--preprod.sandbox.lightning.force.com/*", "https://scholarone.my.salesforce.com/*" ],
+         "matches": [ 
+            "https://clarivateanalytics.lightning.force.com/*", 
+            "https://clarivateanalytics--preprod.sandbox.lightning.force.com/*", 
+            "https://scholarone.my.salesforce.com/*",
+            "https://proquestllc.lightning.force.com/*"
+         ],
          "run_at": "document_idle"
       },
       {
