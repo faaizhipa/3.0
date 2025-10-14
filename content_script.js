@@ -181,6 +181,78 @@ function isValidDateFormat(textContent) {
     return datePattern.test(textContent);
 }
 
+function isValidDateFormat2(textContent) {
+    const datePattern = /^(3[01]|[12][0-9]|0?[1-9])\/(1[0-2]|0?[1-9])\/\d{4} (1[0-2]|0?[1-9]):([0-5][0-9]) (AM|PM)$/;
+    return datePattern.test(textContent);
+}
+
+function isValidDateFormatDDMMnoAMPM(textContent) {
+    const datePattern = /^(0?[1-9]|[12][0-9]|3[01])\/(0?[1-9]|1[012])\/\d{4} ([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    return datePattern.test(textContent);
+}
+
+function isValidDateFormatMMDDnoAMPM(textContent) {
+    const datePattern = /^(0?[1-9]|1[0-2])\/(0?[1-9]|[12][0-9]|3[01])\/\d{4} ([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    return datePattern.test(textContent);
+}
+
+function convertDateFormat2(inputDate) {
+    const [datePart, timePart, isAmPm] = inputDate.split(' ');
+    const [day, month, year] = datePart.split('/');
+    return `${month}/${day}/${year} ${timePart} ${isAmPm}`;
+}
+
+function getDayOfMonth() {
+    return new Date().getDate();
+}
+
+function getCurrentMonth() {
+    return new Date().getMonth() + 1;
+}
+
+function convertDateFormatDDMMwithAMPM(dateString) {
+    const [datePart, timePart] = dateString.split(' ');
+    const [day, month, year] = datePart.split('/').map(Number);
+    const [hours, minutes] = timePart.split(':').map(Number);
+    const date = new Date(year, month - 1, day, hours, minutes);
+    const hours12 = date.getHours() % 12 || 12;
+    const amPm = date.getHours() < 12 ? 'AM' : 'PM';
+    return `${String(month).padStart(2, '0')}/${String(day).padStart(2, '0')}/${year} ${String(hours12).padStart(2, '0')}:${String(minutes).padStart(2, '0')} ${amPm}`;
+}
+
+function convertDateFormatMMDDwithAMPM(dateString) {
+    const [datePart, timePart] = dateString.split(' ');
+    const [month, day, year] = datePart.split('/');
+    const [hours, minutes] = timePart.split(':');
+    const date = new Date(year, month - 1, day, hours, minutes);
+    return date.toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+}
+
+function convertDateFormat(inputDate) {
+    const [datePart, timePart, isAmPm] = inputDate.split(' ');
+    const [firstDatePart, secondDatePart, year] = datePart.split('/');
+    const currentDayOfMonth = getDayOfMonth();
+    const currentMonth = getCurrentMonth();
+    let day, month;
+    if ((firstDatePart == currentDayOfMonth) && (secondDatePart == currentMonth)) {
+        day = firstDatePart;
+        month = secondDatePart;
+    } else if ((firstDatePart == currentMonth) && (secondDatePart == currentDayOfMonth)) {
+        day = secondDatePart;
+        month = firstDatePart;
+    } else if ((firstDatePart > 12) && (secondDatePart <= 12)) {
+        day = firstDatePart;
+        month = secondDatePart;
+    } else if ((firstDatePart <= 12) && (secondDatePart > 12)) {
+        day = secondDatePart;
+        month = firstDatePart;
+    } else {
+        month = firstDatePart;
+        day = secondDatePart;
+    }
+    return `${month}/${day}/${year} ${timePart} ${isAmPm}`;
+}
+
 function handleCases() {
     let webTables = document.querySelectorAll('table');
     for (let table of webTables) {
@@ -189,8 +261,17 @@ function handleCases() {
             const dateArray = [];
             const dateElements = row.querySelectorAll("td span span");
             dateElements.forEach(element => {
-                if (isValidDateFormat(element.textContent)) {
-                    dateArray.push(element.textContent);
+                const textContent = element.textContent;
+                if (isValidDateFormat(textContent)) {
+                    dateArray.push(convertDateFormat(textContent));
+                } else if (isValidDateFormat2(textContent)) {
+                    dateArray.push(convertDateFormat2(textContent));
+                } else if (isValidDateFormatDDMMnoAMPM(textContent)) {
+                    const addAMPM = convertDateFormatDDMMwithAMPM(textContent);
+                    dateArray.push(convertDateFormat(addAMPM));
+                } else if (isValidDateFormatMMDDnoAMPM(textContent)) {
+                    const addAMPM = convertDateFormatMMDDwithAMPM(textContent);
+                    dateArray.push(convertDateFormat(addAMPM));
                 }
             });
 
