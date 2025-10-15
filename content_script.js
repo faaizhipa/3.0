@@ -1,52 +1,4 @@
-// --- Email & Keyword Constants ---
-const emailEndNote = "endnote.support@clarivate.com";
-const emailKeywordsEndNote = ['ts.', 'ts-', 'techstreet', 'account', 'tr.', 'queries', 'jgear', 'jstead', 'derwent', 'customer', 'scientific', 'proposals', 'service', 'science', 'custserv', 'wos', 'WOS', 'collections', 'invoices', 'serion', 'services', 'compumark', 'admin', 'contract', 'ipsci', 'ips', 'drg', 'dartsip', 'hidadataprogram', 'cortellis', 'compuMark', 'account', 'billing', 'invoice', 'certificate', 'tax', 'support', 'askhbi', 'cash', 'team', 'sales', 'bis.in', 'bis.mon', 'bisqa'];
-const emailWoS = "wosg.support@clarivate.com";
-const emailKeywordsWoS = ['ts.', 'ts-', 'techstreet', 'account', 'tr.', 'queries', 'jgear', 'jstead', 'derwent', 'customer', 'scientific', 'proposals', 'service', 'custserv', 'endnote', 'collections', 'invoices', 'serion', 'services', 'compumark', 'admin', 'contract', 'ipsci', 'ips', 'drg', 'dartsip', 'hidadataprogram', 'cortellis', 'compuMark', 'account', 'billing', 'invoice', 'certificate', 'tax', 'support', 'askhbi', 'cash', 'team', 'sales', 'bis.in', 'bis.mon', 'bisqa'];
-const emailAccountSupport = "account.support@clarivate.com";
-const emailKeywordsAccountSupport = ['ts.', 'ts-', 'techstreet', 'endnote', 'tr.', 'queries', 'jgear', 'jstead', 'derwent', 'customer', 'scientific', 'proposals', 'service', 'science', 'custserv', 'wos', 'WOS', 'collections', 'invoices', 'serion', 'services', 'compumark', 'admin', 'contract', 'ipsci', 'ips', 'drg', 'dartsip', 'hidadataprogram', 'cortellis', 'compuMark', 'account', 'billing', 'invoice', 'certificate', 'tax', 'support', 'askhbi', 'cash', 'team', 'sales', 'bis.in', 'bis.mon', 'bisqa'];
-const emailLifeScience = "lifesciences.support@clarivate.com";
-const emailKeywordsLifeScience = ['ts.', 'ts-', 'techstreet', 'endnote', 'science', 'tr.', 'queries', 'jgear', 'jstead', 'derwent', 'customer', 'scientific', 'proposals', 'service', 'science', 'custserv', 'wos', 'WOS', 'collections', 'invoices', 'serion', 'services', 'compumark', 'admin', 'contract', 'ipsci', 'ips', 'drg', 'dartsip', 'hidadataprogram', 'cortellis', 'compuMark', 'account', 'billing', 'invoice', 'certificate', 'tax', 'support', 'askhbi', 'cash', 'team', 'sales', 'bis.in', 'bis.mon', 'bisqa'];
-const emailLifeScienceHDS = "DRG.customerservice@clarivate.com";
-const emailKeywordsLifeScienceHDS = ['ts.', 'ts-', 'techstreet', 'endnote', 'science', 'tr.', 'queries', 'jgear', 'jstead', 'derwent', 'customer', 'scientific', 'proposals', 'service', 'science', 'custserv', 'wos', 'WOS', 'collections', 'invoices', 'serion', 'services', 'compumark', 'admin', 'contract', 'ipsci', 'ips', 'drg', 'dartsip', 'hidadataprogram', 'cortellis', 'compuMark', 'account', 'billing', 'invoice', 'certificate', 'tax', 'support', 'askhbi', 'cash', 'team', 'sales', 'bis.in', 'bis.mon', 'bisqa'];
-const emailLifeSciencePS = ["lsclientservicesdl@clarivate.com", "lifesciences.support@clarivate.com"];
-const emailKeywordsLifeSciencePS = ['ts.', 'ts-', 'techstreet', 'endnote', 'science', 'tr.', 'queries', 'jgear', 'jstead', 'derwent', 'customer', 'scientific', 'proposals', 'service', 'science', 'custserv', 'wos', 'WOS', 'collections', 'invoices', 'serion', 'services', 'compumark', 'admin', 'contract', 'ipsci', 'ips', 'drg', 'dartsip', 'hidadataprogram', 'cortellis', 'compuMark', 'account', 'billing', 'invoice', 'certificate', 'tax', 'support', 'askhbi', 'cash', 'team', 'sales', 'bis.in', 'bis.mon', 'bisqa'];
-
-let desiredTextSelection, emailKeywordsSelection;
-
 // --- Initialization ---
-
-/**
- * Fetches settings from storage and sets up the script's initial state.
- */
-function initialize() {
-    chrome.storage.sync.get('settings', (data) => {
-        if (data.settings && data.settings.teamSelection) {
-            const savedSelection = data.settings.teamSelection;
-            if (savedSelection === 'EndNote') {
-                desiredTextSelection = emailEndNote;
-                emailKeywordsSelection = emailKeywordsEndNote;
-            } else if (savedSelection === 'WebOfScience') {
-                desiredTextSelection = emailWoS;
-                emailKeywordsSelection = emailKeywordsWoS;
-            } else if (savedSelection === 'AccountSupport') {
-                desiredTextSelection = emailAccountSupport;
-                emailKeywordsSelection = emailKeywordsAccountSupport;
-            } else if (savedSelection === 'LifeScience') {
-                desiredTextSelection = emailLifeScience;
-                emailKeywordsSelection = emailKeywordsLifeScience;
-            } else if (savedSelection === 'LifeScienceHDS') {
-                desiredTextSelection = emailLifeScienceHDS;
-                emailKeywordsSelection = emailKeywordsLifeScienceHDS;
-            } else if (savedSelection === 'LifeSciencePS') {
-                desiredTextSelection = emailLifeSciencePS;
-                emailKeywordsSelection = emailKeywordsLifeSciencePS;
-            }
-        }
-    });
-}
-
-initialize();
 
 
 // --- Data Extraction & Caching ---
@@ -109,55 +61,10 @@ function getCaseData() {
 }
 
 
-// --- Anchor Handling ---
+// --- Utility Functions ---
 
-function isEndNoteSupportAnchor(anchor) {
-    let desiredText = desiredTextSelection || emailEndNote;
-    if (Array.isArray(desiredText)) {
-        for (let item of desiredText) {
-            if (anchor.textContent.includes(item)) {
-                return true;
-            }
-        }
-        return false;
-    } else {
-        return anchor.textContent.includes(desiredText);
-    }
-}
-
-function isClarivateEmailList(anchor) {
-    const emailKeywords = emailKeywordsSelection || emailKeywordsEndNote;
-    const clarivateDomain = '@clarivate.com';
-    for (let keyword of emailKeywords) {
-        if (anchor.textContent.includes(keyword) && anchor.textContent.includes(clarivateDomain)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-function highlightAnchorWithSpecificContent(anchor, color) {
-    anchor.style.backgroundColor = color;
-}
-
-function unhighlightAnchor(anchor) {
-    anchor.style.backgroundColor = "";
-}
-
-function handleAnchors() {
-    const fromFieldDiv = document.getElementsByClassName("standardField uiMenu");
-    for (const fromDiv of fromFieldDiv) {
-        const anchor = fromDiv.querySelector("a.select");
-        if (!isEndNoteSupportAnchor(anchor)) {
-            if (!isClarivateEmailList(anchor)) {
-                highlightAnchorWithSpecificContent(anchor, "red");
-            } else {
-                highlightAnchorWithSpecificContent(anchor, "orange");
-            }
-        } else {
-            unhighlightAnchor(anchor);
-        }
-    }
+function highlightRow(row, color) {
+    row.style.backgroundColor = color;
 }
 
 
@@ -253,41 +160,38 @@ function convertDateFormat(inputDate) {
     return `${month}/${day}/${year} ${timePart} ${isAmPm}`;
 }
 
-function handleCases() {
-    let webTables = document.querySelectorAll('table');
-    for (let table of webTables) {
-        const rows = table.querySelector('tbody').querySelectorAll('tr');
-        for (let row of rows) {
-            const dateArray = [];
-            const dateElements = row.querySelectorAll("td span span");
-            dateElements.forEach(element => {
-                const textContent = element.textContent;
-                if (isValidDateFormat(textContent)) {
-                    dateArray.push(convertDateFormat(textContent));
-                } else if (isValidDateFormat2(textContent)) {
-                    dateArray.push(convertDateFormat2(textContent));
-                } else if (isValidDateFormatDDMMnoAMPM(textContent)) {
-                    const addAMPM = convertDateFormatDDMMwithAMPM(textContent);
-                    dateArray.push(convertDateFormat(addAMPM));
-                } else if (isValidDateFormatMMDDnoAMPM(textContent)) {
-                    const addAMPM = convertDateFormatMMDDwithAMPM(textContent);
-                    dateArray.push(convertDateFormat(addAMPM));
-                }
-            });
+function handleCases(table) {
+    const rows = table.querySelector('tbody').querySelectorAll('tr');
+    for (let row of rows) {
+        const dateArray = [];
+        const dateElements = row.querySelectorAll("td span span");
+        dateElements.forEach(element => {
+            const textContent = element.textContent;
+            if (isValidDateFormat(textContent)) {
+                dateArray.push(convertDateFormat(textContent));
+            } else if (isValidDateFormat2(textContent)) {
+                dateArray.push(convertDateFormat2(textContent));
+            } else if (isValidDateFormatDDMMnoAMPM(textContent)) {
+                const addAMPM = convertDateFormatDDMMwithAMPM(textContent);
+                dateArray.push(convertDateFormat(addAMPM));
+            } else if (isValidDateFormatMMDDnoAMPM(textContent)) {
+                const addAMPM = convertDateFormatMMDDwithAMPM(textContent);
+                dateArray.push(convertDateFormat(addAMPM));
+            }
+        });
 
-            if (dateArray.length > 0) {
-                let earlierDate = dateArray.length === 2 ? getEarlierDate(dateArray[0], dateArray[1]) : new Date(dateArray[0]);
-                const caseMinutes = calculateTimeDifferenceInMinutes(earlierDate);
+        if (dateArray.length > 0) {
+            let earlierDate = dateArray.length === 2 ? getEarlierDate(dateArray[0], dateArray[1]) : new Date(dateArray[0]);
+            const caseMinutes = calculateTimeDifferenceInMinutes(earlierDate);
 
-                if (caseMinutes > 90) {
-                    highlightAnchorWithSpecificContent(row, "rgb(255, 220, 230)");
-                } else if (caseMinutes > 60) {
-                    highlightAnchorWithSpecificContent(row, "rgb(255, 232, 184)");
-                } else if (caseMinutes > 30) {
-                    highlightAnchorWithSpecificContent(row, "rgb(209, 247, 196)");
-                } else {
-                    highlightAnchorWithSpecificContent(row, "rgb(194, 244, 233)");
-                }
+            if (caseMinutes > 90) {
+                highlightRow(row, "rgb(255, 220, 230)");
+            } else if (caseMinutes > 60) {
+                highlightRow(row, "rgb(255, 232, 184)");
+            } else if (caseMinutes > 30) {
+                highlightRow(row, "rgb(209, 247, 196)");
+            } else {
+                highlightRow(row, "rgb(194, 244, 233)");
             }
         }
     }
@@ -297,27 +201,24 @@ function generateStyle(color) {
     return `background-color: ${color}; border-radius: 6px; padding: 3px 6px; color: white; font-weight: 500;`;
 }
 
-function handleStatus() {
-    let webTables = document.querySelectorAll('table');
-    for (let table of webTables) {
-        const rows = table.querySelector('tbody').querySelectorAll('tr');
-        for (let row of rows) {
-            let cells = row.querySelectorAll('td span span');
-            for (let cell of cells) {
-                let cellText = cell.textContent.trim();
-                if (cellText === "New Email Received" || cellText === "Re-opened" || cellText === "Completed by Resolver Group" || cellText === "New" || cellText === "Update Received") {
-                    cell.setAttribute("style", generateStyle("rgb(191, 39, 75)"));
-                } else if (cellText === "Pending Action" || cellText === "Initial Response Sent" || cellText === "In Progress") {
-                    cell.setAttribute("style", generateStyle("rgb(247, 114, 56)"));
-                } else if (cellText === "Assigned to Resolver Group" || cellText === "Pending Internal Response") {
-                    cell.setAttribute("style", generateStyle("rgb(140, 77, 253)"));
-                } else if (cellText === "Solution Delivered to Customer") {
-                    cell.setAttribute("style", generateStyle("rgb(45, 200, 64)"));
-                } else if (cellText === "Closed" || cellText === "Pending Customer Response") {
-                    cell.setAttribute("style", generateStyle("rgb(103, 103, 103)"));
-                } else if (cellText === "Pending System Update - Defect" || cellText === "Pending System Update - Enhancement") {
-                    cell.setAttribute("style", generateStyle("rgb(251, 178, 22)"));
-                }
+function handleStatus(table) {
+    const rows = table.querySelector('tbody').querySelectorAll('tr');
+    for (let row of rows) {
+        let cells = row.querySelectorAll('td span span');
+        for (let cell of cells) {
+            let cellText = cell.textContent.trim();
+            if (cellText === "New Email Received" || cellText === "Re-opened" || cellText === "Completed by Resolver Group" || cellText === "New" || cellText === "Update Received") {
+                cell.setAttribute("style", generateStyle("rgb(191, 39, 75)"));
+            } else if (cellText === "Pending Action" || cellText === "Initial Response Sent" || cellText === "In Progress") {
+                cell.setAttribute("style", generateStyle("rgb(247, 114, 56)"));
+            } else if (cellText === "Assigned to Resolver Group" || cellText === "Pending Internal Response") {
+                cell.setAttribute("style", generateStyle("rgb(140, 77, 253)"));
+            } else if (cellText === "Solution Delivered to Customer") {
+                cell.setAttribute("style", generateStyle("rgb(45, 200, 64)"));
+            } else if (cellText === "Closed" || cellText === "Pending Customer Response") {
+                cell.setAttribute("style", generateStyle("rgb(103, 103, 103)"));
+            } else if (cellText === "Pending System Update - Defect" || cellText === "Pending System Update - Enhancement") {
+                cell.setAttribute("style", generateStyle("rgb(251, 178, 22)"));
             }
         }
     }
@@ -362,15 +263,12 @@ async function ensureFullPageLoad() {
 
 // --- Main Logic ---
 
-function initCaseCommentExtractor() {
-    CaseCommentExtractor.initialize();
-}
-
 /**
  * Observes the DOM for changes and triggers actions based on the identified page type.
  * @param {string} pageType The type of page identified by the background script.
  */
 async function handlePageChanges(pageType) {
+    console.log(`[DEBUG] handlePageChanges called with pageType: ${pageType}`);
     if (pageType === 'Esploro_Customers_Wiki') {
         await ensureFullPageLoad();
         scrapeCustomerData();
@@ -392,17 +290,6 @@ async function handlePageChanges(pageType) {
                     injectDynamicMenu(caseData);
                     initCaseCommentEnhancements();
 
-                    // Specific observer for the email composer
-                    const emailObserver = new MutationObserver((mutations, obs) => {
-                        const emailFromField = document.querySelector('.standardField.uiMenu');
-                        if (emailFromField) {
-                            handleAnchors();
-                            // This could be disconnected if it only needs to run once,
-                            // but we'll leave it on to handle dynamic UI changes.
-                        }
-                    });
-                    emailObserver.observe(document.body, { childList: true, subtree: true });
-
                 } else {
                     console.log('Cache hit. Using cached data.');
                 }
@@ -415,17 +302,32 @@ async function handlePageChanges(pageType) {
             subtree: true
         });
     } else if (pageType === 'Cases_List_Page') {
-        const listObserver = new MutationObserver((mutations, obs) => {
-            const caseListTable = document.querySelector('table.slds-table');
-            if (caseListTable) {
-                handleCases();
-                handleStatus();
-                // We might want to keep this observer active to handle sorting/filtering
-            }
-        });
-        listObserver.observe(document.body, { childList: true, subtree: true });
-    } else if (pageType === 'Case_Comments_Page') {
-        initCaseCommentExtractor();
+        const selector = 'div.forceListViewManager table.slds-table';
+
+        // --- Check-Then-Observe Strategy ---
+        // 1. Check if the element already exists.
+        const existingTable = document.querySelector(selector);
+        if (existingTable) {
+            console.log('[DEBUG] Case list table found on initial check. Applying highlights.');
+            handleCases(existingTable);
+            handleStatus(existingTable);
+        } else {
+            // 2. If not, observe the DOM for the element to be added.
+            console.log('[DEBUG] Case list table not found. Setting up MutationObserver.');
+            const observer = new MutationObserver((mutations, obs) => {
+                const caseListTable = document.querySelector(selector);
+                if (caseListTable) {
+                    console.log('[DEBUG] Case list table found by observer. Applying highlights.');
+                    handleCases(caseListTable);
+                    handleStatus(caseListTable);
+                    obs.disconnect(); // Stop observing once the table is found and handled.
+                }
+            });
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        }
     }
 }
 
@@ -517,41 +419,41 @@ async function injectDynamicMenu(caseData) {
     const buttonData = await getButtonData(caseData, buttonStyle);
 
     if (injectionLocations.card) {
-        const cardTarget = document.querySelector('lightning-card[lwc-7eubp5ml88f-host] slot[name="actions"]');
-        if (cardTarget) {
-            buttonData.forEach(btnInfo => {
-                let element;
-                if (btnInfo.type === 'button') {
-                    element = createButton(btnInfo);
-                } else if (btnInfo.type === 'group') {
-                    element = createButtonGroup(btnInfo.label, btnInfo.items);
-                }
-                cardTarget.appendChild(element);
-            });
-            displayAnalyticsRefreshTime(caseData, cardTarget);
+            const cardTarget = document.querySelector('lightning-card[lwc-7eubp5ml88f-host] slot[name="actions"]');
+            if (cardTarget) {
+                buttonData.forEach(btnInfo => {
+                    let element;
+                    if (btnInfo.type === 'button') {
+                        element = createButton(btnInfo);
+                    } else if (btnInfo.type === 'group') {
+                        element = createButtonGroup(btnInfo.label, btnInfo.items);
+                    }
+                    cardTarget.appendChild(element);
+                });
+                displayAnalyticsRefreshTime(caseData, cardTarget);
+            }
         }
-    }
 
-    if (injectionLocations.header) {
-        const headerTarget = document.querySelector('div.secondaryFields slot[name="secondaryFields"]');
-        if (headerTarget) {
-            buttonData.forEach(btnInfo => {
-                const container = document.createElement('records-highlights-details-item');
-                container.classList.add('slds-page-header__detail-block');
-                let element;
-                if (btnInfo.type === 'button') {
-                    element = createButton(btnInfo);
-                } else if (btnInfo.type === 'group') {
-                    element = createButtonGroup(btnInfo.label, btnInfo.items);
-                }
-                container.appendChild(element);
-                headerTarget.appendChild(container);
-            });
-            displayAnalyticsRefreshTime(caseData, headerTarget, true);
+        if (injectionLocations.header) {
+            const headerTarget = document.querySelector('div.secondaryFields slot[name="secondaryFields"]');
+            if (headerTarget) {
+                buttonData.forEach(btnInfo => {
+                    const container = document.createElement('records-highlights-details-item');
+                    container.classList.add('slds-page-header__detail-block');
+                    let element;
+                    if (btnInfo.type === 'button') {
+                        element = createButton(btnInfo);
+                    } else if (btnInfo.type === 'group') {
+                        element = createButtonGroup(btnInfo.label, btnInfo.items);
+                    }
+                    container.appendChild(element);
+                    headerTarget.appendChild(container);
+                });
+                displayAnalyticsRefreshTime(caseData, headerTarget, true);
+            }
         }
-    }
+    });
 }
-
 
 /**
  * Displays the next analytics refresh time.
@@ -639,65 +541,49 @@ async function getButtonData(caseData, buttonStyle) {
     let buttons = [];
 
     // Production Links
-    buttons.push({
-        type: 'button', label: currentLabels.lv, url: `https://{{server}}.alma.exlibrisgroup.com/esploro/?institution={{Institution Code}}`
-            .replace('{{server}}', server).replace('{{Institution Code}}', institutionCode)
-    });
-    buttons.push({
-        type: 'button', label: currentLabels.bo, url: `https://{{server}}.alma.exlibrisgroup.com/mng/login?institute={{Institution Code}}&productCode=esploro&debug=true`
-            .replace('{{server}}', server).replace('{{Institution Code}}', institutionCode)
-    });
+    buttons.push({ type: 'button', label: currentLabels.lv, url: `https://{{server}}.alma.exlibrisgroup.com/esploro/?institution={{Institution Code}}`
+        .replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) });
+    buttons.push({ type: 'button', label: currentLabels.bo, url: `https://{{server}}.alma.exlibrisgroup.com/mng/login?institute={{Institution Code}}&productCode=esploro&debug=true`
+        .replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) });
 
     // Sandbox Links
     if (productServiceName === 'esploro advanced') {
-        buttons.push({
-            type: 'group', label: 'Sandbox (PSB)', items: [
-                { label: 'PSB LV', url: `https://psb-{{server}}.alma.exlibrisgroup.com/esploro/?institution={{Institution Code}}`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) },
-                { label: 'PSB BO', url: `https://psb-{{server}}.alma.exlibrisgroup.com/mng/login?institute={{Institution Code}}&productCode=esploro&debug=true`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) }
-            ]
-        });
+        buttons.push({ type: 'group', label: 'Sandbox (PSB)', items: [
+            { label: 'PSB LV', url: `https://psb-{{server}}.alma.exlibrisgroup.com/esploro/?institution={{Institution Code}}`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) },
+            { label: 'PSB BO', url: `https://psb-{{server}}.alma.exlibrisgroup.com/mng/login?institute={{Institution Code}}&productCode=esploro&debug=true`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) }
+        ]});
     } else if (productServiceName === 'esploro standard') {
-        buttons.push({
-            type: 'group', label: 'Sandbox (SB)', items: [
-                { label: 'SB LV', url: `https://sb-{{server}}.alma.exlibrisgroup.com/esploro/?institution={{Institution Code}}`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) },
-                { label: 'SB BO', url: `https://sb-{{server}}.alma.exlibrisgroup.com/mng/login?institute={{Institution Code}}&productCode=esploro&debug=true`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) }
-            ]
-        });
+        buttons.push({ type: 'group', label: 'Sandbox (SB)', items: [
+            { label: 'SB LV', url: `https://sb-{{server}}.alma.exlibrisgroup.com/esploro/?institution={{Institution Code}}`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) },
+            { label: 'SB BO', url: `https://sb-{{server}}.alma.exlibrisgroup.com/mng/login?institute={{Institution Code}}&productCode=esploro&debug=true`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) }
+        ]});
     }
 
     // SQA Links
-    buttons.push({
-        type: 'group', label: 'SQA', items: [
-            { label: 'SQA LV', url: `https://sqa-{{server}}.alma.exlibrisgroup.com/esploro/?institution={{Institution Code}}`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) },
-            { label: 'SQA BO', url: `https://sqa-{{server}}.alma.exlibrisgroup.com/mng/login?institute={{Institution Code}}&productCode=esploro&debug=true`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) }
-        ]
-    });
+    buttons.push({ type: 'group', label: 'SQA', items: [
+        { label: 'SQA LV', url: `https://sqa-{{server}}.alma.exlibrisgroup.com/esploro/?institution={{Institution Code}}`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) },
+        { label: 'SQA BO', url: `https://sqa-{{server}}.alma.exlibrisgroup.com/mng/login?institute={{Institution Code}}&productCode=esploro&debug=true`.replace('{{server}}', server).replace('{{Institution Code}}', institutionCode) }
+    ]});
 
     // Kibana & Wiki
-    buttons.push({
-        type: 'group', label: 'Tools', items: [
-            { label: 'Kibana', url: getKibanaUrl(server) },
-            { label: 'Wiki', url: 'https://wiki.clarivate.io/pages/viewpage.action?spaceKey=ESP&title=Kibana+-+Log+Searching+Tool' }
-        ]
-    });
+    buttons.push({ type: 'group', label: 'Tools', items: [
+        { label: 'Kibana', url: getKibanaUrl(server) },
+        { label: 'Wiki', url: 'https://wiki.clarivate.io/pages/viewpage.action?spaceKey=ESP&title=Kibana+-+Log+Searching+Tool' }
+    ]});
 
     // SQL Links
-    buttons.push({
-        type: 'group', label: 'SQL', items: [
-            { label: 'SQL Wiki', url: 'https://wiki.clarivate.io/spaces/ESP/pages/505330963/SQL+Course' },
-            { label: 'SQL Alma', url: 'https://wiki.clarivate.io/display/ESP/SQL+Knowledgebase' },
-            { label: 'SQL Esploro', url: 'https://wiki.clarivate.io/spaces/ESP/pages/505334550/Esploro+SQL+Queries' }
-        ]
-    });
+    buttons.push({ type: 'group', label: 'SQL', items: [
+        { label: 'SQL Wiki', url: 'https://wiki.clarivate.io/spaces/ESP/pages/505330963/SQL+Course' },
+        { label: 'SQL Alma', url: 'https://wiki.clarivate.io/display/ESP/SQL+Knowledgebase' },
+        { label: 'SQL Esploro', url: 'https://wiki.clarivate.io/spaces/ESP/pages/505334550/Esploro+SQL+Queries' }
+    ]});
 
     // System Status
     buttons.push({ type: 'button', label: 'System Status', url: 'https://status.exlibrisgroup.com/system_status' });
 
     // Customer JIRA
-    buttons.push({
-        type: 'button', label: 'Customer JIRA', url: `https://jira.clarivate.io/issues/?jql=project%20%3D%20URM%20AND%20%22Customer%20Code%22%20~%20{{Ex Libris Account Number}}%20AND%20%22Platform%20Product%22%20%3D%20Esploro%20order%20by%20lastViewed%20DESC`
-            .replace('{{Ex Libris Account Number}}', exLibrisAccountNumber)
-    });
+    buttons.push({ type: 'button', label: 'Customer JIRA', url: `https://jira.clarivate.io/issues/?jql=project%20%3D%20URM%20AND%20%22Customer%20Code%22%20~%20{{Ex Libris Account Number}}%20AND%20%22Platform%20Product%22%20%3D%20Esploro%20order%20by%20lastViewed%20DESC`
+        .replace('{{Ex Libris Account Number}}', exLibrisAccountNumber) });
 
     return buttons;
 }
@@ -1078,202 +964,6 @@ function getSqlQuery(entity, custId, instId) {
 }
 
 
-// --- Case Comment Extractor ---
-
-const CaseCommentExtractor = (() => {
-    'use strict';
-    let buttonsInjected = false;
-    let extractorObserver = null;
-    let currentCaseId = null;
-
-    function getCurrentCaseId() {
-        const urlMatch = window.location.pathname.match(/\/(?:Case|lightning\/r\/Case)\/([a-zA-Z0-9]{15,18})/i);
-        return urlMatch?.[1] || null;
-    }
-
-    function escapeXML(str) {
-        if (typeof str !== 'string') return '';
-        return str.replace(/[<>&"']/g, (c) => `&#${c.charCodeAt(0)};`);
-    }
-
-    function formatCommentDate(dateStr) {
-        if (!dateStr || dateStr === 'N/A') return 'N/A';
-        try {
-            let date = new Date(dateStr.replace(/,/g, ''));
-            if (isNaN(date.getTime())) return dateStr;
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear();
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-            return `${day}/${month}/${year} ${hours}:${minutes}`;
-        } catch (e) {
-            return dateStr;
-        }
-    }
-
-    function showToast(message, type = 'success') {
-        if (typeof $A !== 'undefined' && $A.get) {
-            try {
-                const toastEvent = $A.get('e.force:showToast');
-                if (toastEvent) {
-                    toastEvent.setParams({ title: type.charAt(0).toUpperCase() + type.slice(1), message, type, mode: 'dismissible' });
-                    toastEvent.fire();
-                    return;
-                }
-            } catch (e) { console.error('Error firing native toast', e); }
-        }
-        const toast = document.createElement('div');
-        Object.assign(toast.style, { position: 'fixed', top: '20px', right: '20px', padding: '12px 20px', borderRadius: '4px', color: 'white', zIndex: '9999', fontSize: '14px', transition: 'opacity 0.5s ease-out', backgroundColor: type === 'success' ? '#4CAF50' : '#F44336' });
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3500);
-    }
-
-    async function copyToClipboard(text) {
-        try {
-            await navigator.clipboard.writeText(text);
-            return true;
-        } catch (err) {
-            const textArea = document.createElement('textarea');
-            textArea.value = text;
-            document.body.appendChild(textArea);
-            textArea.select();
-            const successful = document.execCommand('copy');
-            document.body.removeChild(textArea);
-            return successful;
-        }
-    }
-
-    function extractCaseMetadata() {
-        // Simplified for brevity. The full implementation would be more robust.
-        const metadata = {
-            caseId: getCurrentCaseId() || 'N/A',
-            caseNumber: document.querySelector('lightning-formatted-text[data-output-element-id="output-field"]')?.textContent.trim() || 'N/A',
-            subject: document.querySelector('div[data-target-selection-name="sfdc:RecordField.Case.Subject"] lightning-formatted-text')?.textContent.trim() || 'N/A',
-        };
-        return metadata;
-    }
-
-    function findCommentsTable(buttonContainer) {
-        // Traverse up to find the card container, then search down for the table.
-        let parent = buttonContainer;
-        for (let i = 0; i < 10; i++) { // Limit search depth to 10 levels
-            if (parent.matches('lightning-card, article.slds-card, .forceRelatedListCardDesktop')) {
-                const table = parent.querySelector('table.slds-table, table.list');
-                if (table) return table;
-            }
-            parent = parent.parentElement;
-            if (!parent) break;
-        }
-        return null;
-    }
-
-    function extractCommentsFromTable(table) {
-        const comments = [];
-        const rows = table.querySelectorAll('tbody tr');
-        rows.forEach(row => {
-            const author = row.cells[1]?.innerText.trim() || 'N/A';
-            const isPublic = row.cells[2]?.querySelector('img')?.alt.toLowerCase() === 'true';
-            const date = row.cells[3]?.innerText.trim() || 'N/A';
-            const commentText = row.cells[4]?.innerText.trim() || 'N/A';
-            comments.push({ author, isPublic, date, commentText });
-        });
-        return comments;
-    }
-
-    function generateXML(data) {
-        if (!data || !data.comments) return '<error>No data extracted</error>';
-        const getMeta = (key) => data.metadata?.[key] || '';
-        const escape = escapeXML;
-        let xml = '<case>\\n';
-        xml += '  <metadata>\\n';
-        xml += `    <caseId>${escape(getMeta('caseId'))}</caseId>\\n`;
-        xml += `    <caseNumber>${escape(getMeta('caseNumber'))}</caseNumber>\\n`;
-        xml += `    <subject>${escape(getMeta('subject'))}</subject>\\n`;
-        xml += '  </metadata>\\n';
-        xml += '  <updates>\\n';
-        data.comments.forEach((comment) => {
-            xml += `    <comment public="${comment.isPublic ? 'true' : 'false'}">\\n`;
-            xml += `      <author>${escape(comment.author)}</author>\\n`;
-            xml += `      <date>${escape(formatCommentDate(comment.date))}</date>\\n`;
-            xml += `      <text>${escape(comment.commentText)}</text>\\n`;
-            xml += '    </comment>\\n';
-        });
-        xml += '  </updates>\\n</case>';
-        return xml;
-    }
-
-    function generateTable(data) {
-        if (!data || !data.comments) return 'No data available';
-        const getMeta = (key) => data.metadata?.[key] || 'N/A';
-        let table = `Case ID:\\t${getMeta('caseId')}\\n`;
-        table += `Case Number:\\t${getMeta('caseNumber')}\\n`;
-        table += `Subject:\\t${getMeta('subject')}\\n`;
-        table += '\\n';
-        table += 'Author\\tPublic\\tDate\\tComment\\n';
-        data.comments.forEach((comment) => {
-            const escapedComment = (comment.commentText || '').replace(/\\t/g, ' ').replace(/\\n/g, ' ');
-            const formattedDate = formatCommentDate(comment.date);
-            table += `${comment.author || 'N/A'}\\t${comment.isPublic ? 'Yes' : 'No'}\\t${formattedDate}\\t${escapedComment}\\n`;
-        });
-        return table;
-    }
-
-    return {
-        initialize: () => {
-            if (getCurrentCaseId()) {
-                const observer = new MutationObserver(() => {
-                    const actionContainer = document.querySelector('.branding-actions.slds-button-group[data-aura-class="oneActionsRibbon forceActionsContainer"]');
-                    if (actionContainer && !actionContainer.querySelector('#extract-comments-btn')) {
-                        const extractButton = document.createElement('button');
-                        extractButton.id = 'extract-comments-btn';
-                        extractButton.className = 'slds-button slds-button_neutral';
-                        extractButton.textContent = 'Extract Comments';
-                        actionContainer.appendChild(extractButton);
-
-                        extractButton.addEventListener('click', () => {
-                            const commentsTable = findCommentsTable(actionContainer);
-                            if (commentsTable) {
-                                const data = {
-                                    metadata: extractCaseMetadata(),
-                                    comments: extractCommentsFromTable(commentsTable)
-                                };
-                                extractButton.style.display = 'none';
-
-                                const copyTableBtn = document.createElement('button');
-                                copyTableBtn.className = 'slds-button slds-button_neutral';
-                                copyTableBtn.textContent = 'Copy Table';
-                                copyTableBtn.onclick = async () => {
-                                    const success = await copyToClipboard(generateTable(data));
-                                    showToast(success ? 'Table copied' : 'Copy failed', success ? 'success' : 'error');
-                                };
-
-                                const copyXmlBtn = document.createElement('button');
-                                copyXmlBtn.className = 'slds-button slds-button_neutral';
-                                copyXmlBtn.textContent = 'Copy XML';
-                                copyXmlBtn.onclick = async () => {
-                                    const success = await copyToClipboard(generateXML(data));
-                                    showToast(success ? 'XML copied' : 'Copy failed', success ? 'success' : 'error');
-                                };
-
-                                const buttonGroup = document.createElement('div');
-                                buttonGroup.className = 'slds-button-group';
-                                buttonGroup.role = 'group';
-                                buttonGroup.appendChild(copyTableBtn);
-                                buttonGroup.appendChild(copyXmlBtn);
-                                actionContainer.appendChild(buttonGroup);
-                            } else {
-                                showToast('Case comments table not found.', 'error');
-                            }
-                        });
-                    }
-                });
-                observer.observe(document.body, { childList: true, subtree: true });
-            }
-        }
-    };
-})();
 
 
 // --- Event Listeners ---
