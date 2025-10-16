@@ -25,7 +25,7 @@
    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwEtsrKbUbSe0JeeMtKca1Ka786YKcryHy5uKYPXm5Zm7QUnr/pn8YU/zGjs0ByOkO5309ro9sRsVKscYpYLfqiiQQGNvS5hnYSUh/z43QrS//ItbDHMmjlkJdryctqLO87pUVdbo97knNZ4fXAYkZNZFjjMG8UergCmOgkSt+9k6aQnSE+r1vmME+v3Tl44Wr8GOkM0TohvH1GdQODSh7tNcVpEtj3GnEmHR9NhABR95+cNLwIv9e3d/hWYpdPOm1gwf5bxWKlgbdtA93rFVALZiLcJ6HfBBElnWrXAl9vBMnqzFy+urtuF9ZJb3Qf64gdBa9IOnF0KVBDLI1DTm+wIDAQAB",
    "manifest_version": 3,
    "name": "Salesforce Power-Up Extension",
-   "permissions": [ "storage", "tabs", "scripting" ],
+   "permissions": [ "storage", "tabs", "scripting", "webNavigation" ],
    "host_permissions": [
       "https://*.lightning.force.com/",
       "https://*.salesforce.com/",

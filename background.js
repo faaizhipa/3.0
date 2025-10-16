@@ -69,6 +69,27 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 });
 
 
+/**
+ * Listens for history state updates, which are common in Single Page Applications (SPAs) like Salesforce Lightning.
+ * This is crucial for detecting navigation that doesn't trigger a full page reload (e.g., clicking between cases).
+ *
+ * @param {object} details - An object containing details about the navigation event, including the URL.
+ */
+chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
+    // We filter for Salesforce URLs to ensure we only act on relevant pages.
+    if (details.url && (details.url.includes('.lightning.force.com') || details.url.includes('.salesforce.com'))) {
+        const pageType = getPageType(details.url);
+        if (pageType) {
+            // A known page type was identified, so we send a message to the content script.
+            chrome.tabs.sendMessage(details.tabId, {
+                message: 'pageTypeIdentified',
+                pageType: pageType
+            });
+        }
+    }
+});
+
+
 // --- Message Handling for Settings ---
 
 /**
