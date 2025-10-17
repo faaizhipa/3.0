@@ -1032,13 +1032,6 @@ function initSidePanel() {
  * @const {Array<object>}
  */
 const esploroCustomerList = [
-    { id: '0', institutionCode: 'TR_INTEGRATION_INST', server: 'na05', custID: '550', instID: '561', portalCustomDomain: 'https://tr-integration-researchportal.esploro.exlibrisgroup.com/esploro/', prefix: '', name: '', status: '', esploroEdition: 'Advanced', sandboxEdition: '', hasScopus: '', comments: 'Support Test environment', otbDomain: '', directLinkToSqaEnvironment: 'Link to environment:\nhttps://na05.alma.exlibrisgroup.com/mng/login?institute=TR_INTEGRATION_INST&productCode=esploro&debug=true&auth=local\nUser: esploro_impl\npassword: a12345678A', sqaPortalLink: '', oneTrust: '', discoveryAlma: '' },
-    { id: '1', institutionCode: '61SCU_INST', server: 'ap02', custID: '2350', instID: '2368', portalCustomDomain: 'http://researchportal.scu.edu.au', prefix: 'scu', name: 'Southern Cross University', status: 'Completed', esploroEdition: 'Advanced', sandboxEdition: 'PSB', hasScopus: 'Yes', comments: '', otbDomain: '', directLinkToSqaEnvironment: 'https://sqa-ap02.alma.exlibrisgroup.com/mng/login?institute=61SCU_INST&productCode=esploro&debug=true', sqaPortalLink: 'https://sqa-ap02.alma.exlibrisgroup.com/esploro/?institution=61SCU_INST', oneTrust: 'V', discoveryAlma: 'Primo VE' }
-];
-
-/**
- * Finds the customer data table on the Esploro Customers wiki page and triggers the conversion and saving process.
- */
     {
         id: '0',
         institutionCode: 'TR_INTEGRATION_INST',
@@ -1056,8 +1049,8 @@ const esploroCustomerList = [
         comments: 'Support Test environment',
         otbDomain: '',
         directLinkToSqaEnvironment:
-            'Link to environment:\nhttps://na05.alma.exlibrisgroup.com/mng/login?institute=TR_INTEGRATION_INST&productCode=esploro&debug=true&auth=local\nUser: esploro_impl\npassword: a12345678A',
-        sqaPortalLink: '',
+            'https://na05.alma.exlibrisgroup.com/mng/login?institute=TR_INTEGRATION_INST&productCode=esploro&debug=true&auth=local',
+        sqaPortalLink: 'https://na05.alma.exlibrisgroup.com/mng/login?institute=TR_INTEGRATION_INST&productCode=esploro&debug=true&auth=local',
         oneTrust: '',
         discoveryAlma: ''
     },
